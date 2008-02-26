@@ -20,7 +20,7 @@ new_db();
 
 my $form = HTML::FormFu->new;
 
-$form->load_config_file('t/save_to_model/might_have_delete_if_empty.yml');
+$form->load_config_file('t/save/might_have_delete_if_empty.yml');
 
 my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
 

@@ -21,7 +21,7 @@ new_db();
 
 my $form = HTML::FormFu->new;
 
-$form->load_config_file('t/save_to_model/has_one.yml');
+$form->load_config_file('t/save/has_one.yml');
 
 my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
 

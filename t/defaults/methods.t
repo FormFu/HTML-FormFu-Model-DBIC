@@ -26,7 +26,7 @@ new_db();
 
 my $form = HTML::FormFu->new;
 
-$form->load_config_file('t/defaults_from_model/methods.yml');
+$form->load_config_file('t/defaults/methods.yml');
 
 my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
 

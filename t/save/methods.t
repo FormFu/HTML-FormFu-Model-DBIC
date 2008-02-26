@@ -26,7 +26,7 @@ my $rs = $schema->resultset('Master');
 {
     my $form = HTML::FormFu->new;
 
-    $form->load_config_file('t/save_to_model/methods.yml');
+    $form->load_config_file('t/save/methods.yml');
     # Fake submitted form
     $form->process( {
             method_test => 'apejens',
@@ -52,7 +52,7 @@ my $rs = $schema->resultset('Master');
 {
     my $form = HTML::FormFu->new;
 
-    $form->load_config_file('t/save_to_model/methods.yml');
+    $form->load_config_file('t/save/methods.yml');
     
     $form->process({
         method_test => 'apejens2',

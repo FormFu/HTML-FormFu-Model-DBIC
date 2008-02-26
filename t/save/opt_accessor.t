@@ -26,7 +26,7 @@ new_db();
 
 my $form = HTML::FormFu->new;
 
-$form->load_config_file('t/save_to_model/opt_accessor.yml');
+$form->load_config_file('t/save/opt_accessor.yml');
 
 my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
 

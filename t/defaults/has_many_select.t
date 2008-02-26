@@ -21,7 +21,7 @@ new_db();
 
 my $form = HTML::FormFu->new;
 
-$form->load_config_file('t/defaults_from_model/has_many_select.yml');
+$form->load_config_file('t/defaults/has_many_select.yml');
 
 my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
 

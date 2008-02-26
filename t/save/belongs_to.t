@@ -21,7 +21,7 @@ new_db();
 
 my $form = HTML::FormFu->new;
 
-$form->load_config_file('t/defaults_from_model/belongs_to_lookup_table.yml');
+$form->load_config_file('t/defaults/belongs_to_lookup_table.yml');
 
 my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
 

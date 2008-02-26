@@ -21,7 +21,7 @@ new_db();
 
 my $form = HTML::FormFu->new;
 
-$form->load_config_file('t/save_to_model/many_to_many_repeatable.yml');
+$form->load_config_file('t/save/many_to_many_repeatable.yml');
 
 my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
 
