@@ -1,16 +1,6 @@
 use strict;
 use warnings;
-use Test::More;
-
-BEGIN {
-    eval "use DBIx::Class 0.08002";
-    if ($@) {
-        plan skip_all => 'DBIx::Class required';
-        exit;
-    }
-}
-
-plan tests => 9;
+use Test::More tests => 9;
 
 use HTML::FormFu;
 use lib 't/lib';

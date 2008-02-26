@@ -1,21 +1,6 @@
 use strict;
 use warnings;
-use Test::More;
-
-BEGIN {
-    eval "use DBIx::Class 0.08002";
-    if ($@) {
-        plan skip_all => 'DBIx::Class required';
-        exit;
-    }
-    eval "use DateTime::Format::MySQL";
-    if ($@) {
-        plan skip_all => 'DateTime::Format::MySQL required';
-        exit;
-    }
-}
-
-plan tests => 3;
+use Test::More tests => 3;
 
 use HTML::FormFu;
 use lib 't/lib';
