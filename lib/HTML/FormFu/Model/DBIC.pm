@@ -547,6 +547,7 @@ sub _save_non_columns {
 
     my @fields
         = grep { is_direct_child( $base, $_ ) }
+        grep { defined $_->nested_name }
         @{ $base->get_fields };
 
     for my $field (@fields) {
