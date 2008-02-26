@@ -88,7 +88,7 @@ sub _get_resultset {
     croak "need a schema or context";
 }
 
-sub defaults {
+sub default_values {
     my ( $self, $dbic, $attrs ) = @_;
 
     $attrs ||= {};
@@ -203,7 +203,7 @@ sub _fill_nested {
             my $blocks = $block->repeat($count);
 
             for my $rep ( 0 .. $#rows ) {
-                defaults( $self, $rows[$rep], { base => $blocks->[$rep] } );
+                default_values( $self, $rows[$rep], { base => $blocks->[$rep] } );
             }
 
             # set the counter field to the number of rows
@@ -231,15 +231,40 @@ sub _fill_nested {
         }
         else {
             if ( defined( my $row = $dbic->$rel ) ) {
-                defaults( $self, $row, { base => $block } );
+                default_values( $self, $row, { base => $block } );
             }
         }
     }
     return;
 }
 
-sub save {
+sub create {
+    my ( $self, $attrs ) = @_;
+
+    croak "invalid arguments" if @_ > 2;
+
+    my $form = $self->form;
+    my $base = defined $attrs->{base} ? delete $attrs->{base} : $form;
+
+    my $schema = $form->stash->{schema}
+        or croak 'schema required on form stash, if no row object provided';
+
+    my $resultset = $attrs->{resultset}
+        || $base->model_config->{DBIC}{resultset}
+        || $form->model_config->{DBIC}{resultset}
+        or croak 'could not find resultset name';
+
+    $resultset = $schema->resultset($resultset);
+
+    my $dbic = $resultset->new_result({});
+
+    return $self->update( $dbic, { %$attrs, base => $base } );
+}
+
+sub update {
     my ( $self, $dbic, $attrs ) = @_;
+
+    croak "row object missing" if !defined $dbic;
 
     $attrs ||= {};
 
@@ -254,20 +279,6 @@ sub save {
     my %checkbox = map { $_->nested_name => 1 }
         grep { defined $_->name }
         @{ $base->get_fields( { type => 'Checkbox' } ) || [] };
-
-    if ( !defined $dbic ) {
-        my $schema = $form->stash->{schema}
-            or croak 'schema required on form stash, if no row object provided';
-
-        my $resultset = $attrs->{resultset}
-            || $base->model_config->{DBIC}{resultset}
-            || $form->model_config->{DBIC}{resultset}
-            or croak 'could not find resultset name';
-
-        $resultset = $schema->resultset($resultset);
-
-        $dbic = $resultset->new_result({});
-    }
 
     my $rs   = $dbic->result_source;
     my @rels = $rs->relationships;
@@ -328,7 +339,7 @@ sub _save_relationships {
 
             next if !defined $target;
 
-            save(
+            update(
                 $self, $target,
                 {   %$attrs,
                     base        => $block,
@@ -394,7 +405,7 @@ sub _save_has_many {
 
         next if _delete_has_many( $form, $row, $rep );
 
-        save(
+        update(
             $self, $row,
             {   %$attrs,
                 base        => $rep,
@@ -686,7 +697,7 @@ sub _save_repeatable_many_to_many {
 
                 next if _delete_many_to_many( $form, $dbic, $row, $rel, $rep );
 
-                save(
+                update(
                     $self, $row,
                     {   %$attrs,
                         base        => $rep,
@@ -729,7 +740,7 @@ sub _insert_many_to_many {
 
     my $row = $dbic->$rel->new( {} );
 
-    # add_to_* will be called later, after save is called on this row
+    # add_to_* will be called later, after update is called on this row
 
     return $row;
 }
@@ -768,19 +779,19 @@ Set a forms' default values from a DBIx::Class row object:
 
     my $row = $resultset->find( $id );
     
-    $form->defaults( $row );
+    $form->default_values( $row );
 
 Update the database from a submitted form:
 
     if ( $form->submitted_and_valid ) {
         my $row = $resultset->find( $form->param('id') );
         
-        $form->save( $row );
+        $form->update( $row );
     }
 
 =head1 METHODS
 
-=head2 defaults
+=head2 default_values
 
 Arguments: $dbic_row, [\%config]
 
@@ -975,7 +986,7 @@ C<< $field->model_config->{DBIC}{accessor} >>.
           dbic:
             accessor: method_name
 
-=head2 save
+=head2 update
 
 Arguments: [$dbic_row], [\%config]
 
@@ -984,16 +995,16 @@ Return Value: $dbic_row
 Update the database with the submitted form values. Uses 
 L<update_or_insert|DBIx::Class::Row/update_or_insert>.
 
-See L</defaults> for specifics about what relationships are supported
+See L</default_values> for specifics about what relationships are supported
 and how to structure your forms.
 
 =head3 Automatically creating a new row object
 
-If you're using L</save> to create a new row object, you don't 
+If you're using L</update> to create a new row object, you don't 
 need to create one yourself, as long as the L<DBIx::Class> Schema is on the
 form L</stash>, and the ResultSet name is set in either the C<%config>
 argument, the Form's L<HTML::FormFu/model_config>, or the Block's
-L<HTML::FormFu/model_config> (if L</save> is called on a Block
+L<HTML::FormFu/model_config> (if L</update> is called on a Block
 element).
 
 If you're using L<Catalyst::Controller::HTML::FormFu>, it can automatically
@@ -1014,20 +1025,20 @@ An example of setting the ResultSet name on a Form:
 Note that if you still want to pass a C<%config> argument, you must pass
 C<undef> in place of the row:
 
-    $form->save( undef, \%config );
+    $form->update( undef, \%config );
 
 =head1 FAQ
 
 =head2 Add extra values not in the form
 
-To save values to the database which weren't submitted to the form, 
+To update values to the database which weren't submitted to the form, 
 you can first add them to the form with L<add_valid|HTML::FormFu/add_valid>.
 
     my $passwd = generate_passwd();
     
     $form->add_valid( passwd => $passwd );
     
-    $form->save( $row );
+    $form->update( $row );
 
 C<add_valid> works for fieldnames that don't exist in the form.
 
