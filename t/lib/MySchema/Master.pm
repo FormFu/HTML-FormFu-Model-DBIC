@@ -44,25 +44,20 @@ __PACKAGE__->belongs_to(
 
 
 sub method_test {
-    my $self = shift;
-
-    if (@_) {
-        $self->text_col(shift);
+    my ($self, $val) = @_;
+    if (defined $val) {
+        $self->text_col($val);
     }
-
     return $self->text_col;
 }
-
 sub method_select_test {
-    my $self = shift;
-
-    if (@_) {
-        $self->select_col(shift);
+    my ($self, $val) = @_;
+    if (defined $val) {
+        $self->select_col($val);
     }
-
+    
     return $self->select_col;
 }
-
 sub method_checkbox_test {
     my ($self, $val) = @_;
     if (defined $val) {
