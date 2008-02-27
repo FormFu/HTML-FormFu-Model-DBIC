@@ -48,6 +48,7 @@ sub method_test {
 
     if (@_) {
         $self->text_col(shift);
+        $self->text_col(@_);
     }
 
     return $self->text_col;
@@ -57,16 +58,16 @@ sub method_select_test {
     my $self = shift;
 
     if (@_) {
-        $self->select_col(shift);
+        $self->select_col(@_);
     }
 
     return $self->select_col;
 }
 
 sub method_checkbox_test {
-    my ($self, $val) = @_;
-    if (defined $val) {
-        $self->checkbox_col($val);
+    my $self = shift;
+    if (@_)
+        $self->checkbox_col(@_);
     }
     return $self->checkbox_col;
 }
