@@ -45,9 +45,7 @@ __PACKAGE__->belongs_to(
 
 sub method_test {
     my $self = shift;
-
     if (@_) {
-        $self->text_col(shift);
         $self->text_col(@_);
     }
 
@@ -56,7 +54,6 @@ sub method_test {
 
 sub method_select_test {
     my $self = shift;
-
     if (@_) {
         $self->select_col(@_);
     }
