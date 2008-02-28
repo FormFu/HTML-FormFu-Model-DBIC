@@ -63,7 +63,7 @@ sub method_select_test {
 
 sub method_checkbox_test {
     my $self = shift;
-    if (@_)
+    if (@_) {
         $self->checkbox_col(@_);
     }
     return $self->checkbox_col;
