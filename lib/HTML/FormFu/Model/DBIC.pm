@@ -627,7 +627,7 @@ sub _save_multi_value_fields_many_to_many {
             $pk = "me.$pk" unless $pk =~ /\./;
 
             my @rows = $related->result_source->resultset->search(
-                { $pk => { -in => \@values } } )->all;
+                { %{ $field->model_config->{DBIC}->{condition} || {} }, $pk => { -in => \@values } } )->all;
 
             my $set_method = "set_$name";
 
