@@ -504,6 +504,10 @@ sub _save_columns {
             ? $form->param_value($col)
             : undef;
 
+        my ($pk) = $dbic->result_source->primary_columns;
+        # don't set primary key to null or '' - for Pg SERIALs
+        next if ( $col eq $pk ) && ! ( defined $value && length $value );
+
         if (   defined $field
             && $field->model_config->{DBIC}{delete_if_empty}
             && ( !defined $value || !length $value ) )
