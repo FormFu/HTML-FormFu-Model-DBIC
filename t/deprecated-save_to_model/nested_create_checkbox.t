@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 2;
+use Test::More tests => 3;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -26,7 +26,13 @@ $form->process( {
 {
     my $row = $rs->new( {} );
 
-    $form->save_to_model( $row, { nested_base => 'foo' } );
+    {
+        my $warnings;
+        local $SIG{ __WARN__ } = sub { $warnings++ };
+
+        $form->save_to_model( $row, { nested_base => 'foo' } );
+        ok( $warnings, 'warning thrown' );
+    }
 }
 
 {

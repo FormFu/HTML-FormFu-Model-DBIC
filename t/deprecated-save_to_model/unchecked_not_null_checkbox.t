@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 1;
+use Test::More tests => 2;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -32,7 +32,13 @@ $form->process( { id => 1, } );
 {
     my $row = $rs->find(1);
 
-    $form->save_to_model($row);
+    {
+        my $warnings;
+        local $SIG{ __WARN__ } = sub { $warnings++ };
+
+        $form->save_to_model($row);
+        ok( $warnings, 'warning thrown' );
+    }
 }
 
 {

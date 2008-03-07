@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 1;
+use Test::More tests => 2;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -24,7 +24,13 @@ $rs->create( { text_col => 'filler', } );
 {
     my $row = $rs->find(1);
 
-    $form->defaults_from_model($row);
+    {
+        my $warnings;
+        local $SIG{ __WARN__ } = sub { $warnings++ };
+
+        $form->defaults_from_model($row);
+        ok( $warnings, 'warning thrown' );
+    }
 
     my $field = $form->get_element('method_test');
 

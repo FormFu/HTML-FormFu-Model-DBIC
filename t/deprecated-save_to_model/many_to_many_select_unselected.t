@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 3;
+use Test::More tests => 4;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -57,7 +57,13 @@ my $band_rs = $schema->resultset('Band');
 
     my $row = $user_rs->find(2);
 
-    $form->save_to_model($row);
+    {
+        my $warnings;
+        local $SIG{ __WARN__ } = sub { $warnings++ };
+
+        $form->save_to_model($row);
+        ok( $warnings, 'warning thrown' );
+    }
 
     is( $row->name, 'Paul McCartney' );
 

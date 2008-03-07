@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 3;
+use Test::More tests => 4;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -43,7 +43,13 @@ my $band_rs = $schema->resultset('Band');
 {
     my $row = $rs->find(4);
 
-    $form->defaults_from_model( $row, { nested_base => 'foo' } );
+    {
+        my $warnings;
+        local $SIG{ __WARN__ } = sub { $warnings++ };
+
+        $form->defaults_from_model( $row, { nested_base => 'foo' } );
+        ok( $warnings, 'warning thrown' );
+    }
 
     is( $form->get_field('id')->default,   4 );
     is( $form->get_field('name')->default, 'Paul' );

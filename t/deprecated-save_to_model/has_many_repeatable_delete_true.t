@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 5;
+use Test::More tests => 6;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -58,7 +58,13 @@ my $address_rs = $schema->resultset('Address');
 
     my $row = $user_rs->find(2);
 
-    $form->save_to_model($row);
+    {
+        my $warnings;
+        local $SIG{ __WARN__ } = sub { $warnings++ };
+
+        $form->save_to_model($row);
+        ok( $warnings, 'warning thrown' );
+    }
 
     my $user = $user_rs->find(2);
 

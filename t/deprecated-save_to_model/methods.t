@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 7;
+use Test::More tests => 9;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -26,7 +26,13 @@ my $rs = $schema->resultset('Master');
     {
         my $row = $rs->new( {} );
 
-        $form->save_to_model($row);
+        {
+            my $warnings;
+            local $SIG{ __WARN__ } = sub { $warnings++ };
+
+            $form->save_to_model($row);
+            ok( $warnings, 'warning thrown' );
+        }
     }
 
     {
@@ -48,7 +54,14 @@ my $rs = $schema->resultset('Master');
         method_test => 'apejens2',
     });
     my $row = $rs->find(1);
-    $form->save_to_model($row);
+
+    {
+        my $warnings;
+        local $SIG{ __WARN__ } = sub { $warnings++ };
+
+        $form->save_to_model($row);
+        ok( $warnings, 'warning thrown' );
+    }
     
     is( $row->text_col,                 'apejens2' );
     is( $row->checkbox_col,             0);

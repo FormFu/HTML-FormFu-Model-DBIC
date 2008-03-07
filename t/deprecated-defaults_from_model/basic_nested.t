@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 25;
+use Test::More tests => 26;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -36,7 +36,13 @@ $rs->create( {
 {
     my $row = $rs->find(2);
 
-    $form->defaults_from_model( $row, { nested_base => 'foo' } );
+    {
+        my $warnings;
+        local $SIG{ __WARN__ } = sub { $warnings++ };
+
+        $form->defaults_from_model( $row, { nested_base => 'foo' } );
+        ok( $warnings, 'warning thrown' );
+    }
 
     my $fs = $form->get_element;
 

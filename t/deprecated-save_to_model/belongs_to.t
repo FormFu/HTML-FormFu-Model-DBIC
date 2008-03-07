@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 2;
+use Test::More tests => 3;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -38,7 +38,13 @@ my $master;
     # should get master id 3
     $master = $rs->create( { text_col => 'b', type => 2, type2_id => 2 } );
 
-    $form->save_to_model($master);
+    {
+        my $warnings;
+        local $SIG{ __WARN__ } = sub { $warnings++ };
+
+        $form->save_to_model($master);
+        ok( $warnings, 'warning thrown' );
+    }
 }
 
 {

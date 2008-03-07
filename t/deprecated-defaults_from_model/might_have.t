@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 4;
+use Test::More tests => 5;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -45,7 +45,13 @@ my $note_rs = $schema->resultset('Note');
 {
     my $row = $rs->find(3);
 
-    $form->defaults_from_model($row);
+    {
+        my $warnings;
+        local $SIG{ __WARN__ } = sub { $warnings++ };
+
+        $form->defaults_from_model($row);
+        ok( $warnings, 'warning thrown' );
+    }
 
     is( $form->get_field('id')->render_data->{value},       3 );
     is( $form->get_field('text_col')->render_data->{value}, 'a' );

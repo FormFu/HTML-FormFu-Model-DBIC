@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 10;
+use Test::More tests => 11;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -36,7 +36,13 @@ $rs->create( {
 {
     my $row = $rs->find(4);
 
-    $form->defaults_from_model($row);
+    {
+        my $warnings;
+        local $SIG{ __WARN__ } = sub { $warnings++ };
+
+        $form->defaults_from_model($row);
+        ok( $warnings, 'warning thrown' );
+    }
 
     is( $form->get_field('id')->default,    '4' );
     is( $form->get_field('name')->default,  'nick' );

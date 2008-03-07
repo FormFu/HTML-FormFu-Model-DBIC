@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 3;
+use Test::More tests => 4;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -44,7 +44,13 @@ my $rs = $schema->resultset('Master');
 {
     my $row = $rs->find(3);
 
-    $form->defaults_from_model( $row, { nested_base => 'foo' } );
+    {
+        my $warnings;
+        local $SIG{ __WARN__ } = sub { $warnings++ };
+
+        $form->defaults_from_model( $row, { nested_base => 'foo' } );
+        ok( $warnings, 'warning thrown' );
+    }
 
     is( $form->get_field( { nested_name => 'foo.id' } )->render_data->{value},
         3 );

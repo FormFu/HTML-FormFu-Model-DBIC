@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 1;
+use Test::More tests => 2;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -45,7 +45,13 @@ my $address_rs = $schema->resultset('Address');
 {
     my $row = $user_rs->find(2);
 
-    $form->defaults_from_model($row);
+    {
+        my $warnings;
+        local $SIG{ __WARN__ } = sub { $warnings++ };
+
+        $form->defaults_from_model($row);
+        ok( $warnings, 'warning thrown' );
+    }
 
     is_deeply( $form->get_field('addresses')->default, [ 2, 3 ] );
 }
