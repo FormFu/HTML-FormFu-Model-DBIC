@@ -620,14 +620,17 @@ sub _save_multi_value_fields_many_to_many {
             next if $form->has_errors($nested_name);
 
             my @values = $form->param_list($nested_name);
+            my @rows;
 
-            my ($pk) = $field->model_config->{DBIC}{default_column}
-                || $related->result_source->primary_columns;
+            if (@values) {
+                my ($pk) = $field->model_config->{DBIC}{default_column}
+                    || $related->result_source->primary_columns;
 
-            $pk = "me.$pk" unless $pk =~ /\./;
+                $pk = "me.$pk" unless $pk =~ /\./;
 
-            my @rows = $related->result_source->resultset->search(
-                { %{ $field->model_config->{DBIC}->{condition} || {} }, $pk => { -in => \@values } } )->all;
+                @rows = $related->result_source->resultset->search(
+                    { %{ $field->model_config->{DBIC}->{condition} || {} }, $pk => { -in => \@values } } )->all;
+            }
 
             my $set_method = "set_$name";
 
