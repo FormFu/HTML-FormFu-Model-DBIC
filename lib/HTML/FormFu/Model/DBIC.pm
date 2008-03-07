@@ -646,6 +646,7 @@ sub _save_repeatable_many_to_many {
     for my $block (@blocks) {
         my $rel = $block->nested_name;
 
+        next if !defined $rel;
         next if grep { $rel eq $_ } @$rels, @$cols;
 
         if ( $dbic->can($rel) ) {
