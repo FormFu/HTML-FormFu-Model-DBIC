@@ -279,15 +279,11 @@ sub update {
             && ( !defined $base->nested_name
                 || $base->nested_name ne $attrs->{nested_base} );
 
-    my %checkbox = map { $_->nested_name => 1 }
-        grep { defined $_->name }
-        @{ $base->get_fields( { type => 'Checkbox' } ) || [] };
-
     my $rs   = $dbic->result_source;
     my @rels = $rs->relationships;
     my @cols = $rs->columns;    
 
-    _save_columns( $base, $dbic, $form, $attrs, \%checkbox, \@rels, \@cols )
+    _save_columns( $base, $dbic, $form, $attrs, \@rels, \@cols )
         or return;
 
     _save_non_columns( $base, $dbic, $form );
@@ -462,7 +458,7 @@ sub _delete_has_many {
 }
 
 sub _save_columns {
-    my ( $base, $dbic, $form, $attrs, $checkbox, $rels, $cols ) = @_;
+    my ( $base, $dbic, $form, $attrs, $rels, $cols ) = @_;
 
     my @valid = $form->valid;
 
@@ -530,14 +526,14 @@ sub _save_columns {
             $value = undef;
         }
         elsif (defined $nested_name
-            && $checkbox->{$nested_name}
+            && $field->isa('HTML::FormFu::Element::Checkbox')
             && !defined $value
             && !$is_nullable )
         {
             $value = $col_info->{default_value};
         }
         elsif ( defined $value
-            || ( defined $nested_name && $checkbox->{$nested_name} ) )
+            || ( defined $nested_name && $field->isa('HTML::FormFu::Element::Checkbox') ) )
         {
 
             # keep $value
