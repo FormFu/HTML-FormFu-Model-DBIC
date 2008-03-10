@@ -561,7 +561,7 @@ sub _save_columns {
 }
 
 sub _save_non_columns {
-    my ( $base, $dbic, $form, $attrs, $checkbox, $rels, $cols ) = @_;
+    my ( $base, $dbic, $form ) = @_;
 
     my @fields
         = grep { is_direct_child( $base, $_ ) }
