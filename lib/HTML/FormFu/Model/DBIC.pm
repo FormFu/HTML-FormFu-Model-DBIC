@@ -483,22 +483,21 @@ sub _save_columns {
 
         next if defined $field && $field->model_config->{DBIC}{accessor};
 
-        my $nested_name = defined $field ? $field->nested_name : undef;
+        my $param_name;
+        if ( defined $field ){
+            $param_name = $field->nested_name;
+        }
+        else {
+            next if defined $attrs->{nested_base};
+            if ( grep { $col eq $_ } @valid ){
+                $param_name = $col;
+            }
+            else {
+                next;
+            }
+        }
 
-        my $value
-            = defined $field
-            ? $form->param_value( $field->nested_name )
-            : (
-            grep {
-                      defined $attrs->{nested_base}
-                    ? defined $nested_name
-                        ? $nested_name eq $_
-                        : 0
-                    : $col eq $_
-                } @valid
-            )
-            ? $form->param_value($col)
-            : undef;
+        my $value = $form->param_value( $param_name );
 
         my ($pk) = $dbic->result_source->primary_columns;
         # don't set primary key to null or '' - for Pg SERIALs
@@ -525,7 +524,7 @@ sub _save_columns {
         {
             $value = undef;
         }
-        elsif (defined $nested_name
+        elsif (defined $field
             && $field->isa('HTML::FormFu::Element::Checkbox')
             && !defined $value
             && !$is_nullable )
@@ -533,7 +532,7 @@ sub _save_columns {
             $value = $col_info->{default_value};
         }
         elsif ( defined $value
-            || ( defined $nested_name && $field->isa('HTML::FormFu::Element::Checkbox') ) )
+            || ( defined $field && $field->isa('HTML::FormFu::Element::Checkbox') ) )
         {
 
             # keep $value
