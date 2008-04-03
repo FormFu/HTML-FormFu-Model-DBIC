@@ -283,10 +283,7 @@ sub update {
     my @rels = $rs->relationships;
     my @cols = $rs->columns;    
 
-    _save_columns( $base, $dbic, $form, $attrs, \@rels, \@cols )
-        or return;
-
-    _save_non_columns( $base, $dbic, $form );
+    _save_columns( $base, $dbic, $form ) or return;
 
     $dbic->update_or_insert;
 
@@ -457,66 +454,13 @@ sub _delete_has_many {
     return 1;
 }
 
-sub _save_columns {
-    my ( $base, $dbic, $form, $attrs, $rels, $cols ) = @_;
-
-    my @valid = $form->valid;
-
-    for my $col (@$cols) {
-
-        my $col_info    = $dbic->column_info($col);
-        my $is_nullable = $col_info->{is_nullable} || 0;
-        my $data_type   = $col_info->{data_type} || '';
-        my $field;
-        if ( defined $attrs->{repeat_base} ) {
-            for my $f ( @{ $base->get_fields } ) {
-                next unless $f->nested_base eq $attrs->{repeat_base};
-                my $orig = $f->original_name;
-                next unless defined $orig && $orig eq $col;
-                $field = $f;
-                last;
-            }
-        }
-        else {
-            $field = $base->get_field( { name => $col } );
-        }
-
-        next if defined $field && $field->model_config->{DBIC}{accessor};
-
-        my $param_name;
-        if ( defined $field ){
-            $param_name = $field->nested_name;
-        }
-        else {
-            next if defined $attrs->{nested_base};
-            if ( grep { $col eq $_ } @valid ){
-                $param_name = $col;
-            }
-            else {
-                next;
-            }
-        }
-
-        my $value = $form->param_value( $param_name );
-
-        my ($pk) = $dbic->result_source->primary_columns;
-        # don't set primary key to null or '' - for Pg SERIALs
-        next if ( $col eq $pk ) && ! ( defined $value && length $value );
-
-        if (   defined $field
-            && $field->model_config->{DBIC}{delete_if_empty}
-            && ( !defined $value || !length $value ) )
-        {
-            $dbic->discard_changes if $dbic->is_changed;
-            $dbic->delete;
-            return;
-        }
-
-        if ( (     $is_nullable
-                || $data_type =~ m/^timestamp|date|int|float|numeric/i
-            )
-            && defined $value
-
+sub _fix_value {
+    my( $dbic, $col, $value, $field, ) = @_;
+    my $col_info    = $dbic->column_info($col);
+    my $is_nullable = $col_info->{is_nullable} || 0;
+    my $data_type   = $col_info->{data_type} || '';
+    if ( defined $value ) {
+        if ( (     $is_nullable || $data_type =~ m/^timestamp|date|int|float|numeric/i )
             # comparing to '' does not work for inflated objects
             && !ref $value 
             && $value eq ''
@@ -524,47 +468,34 @@ sub _save_columns {
         {
             $value = undef;
         }
-        elsif (defined $field
+    }
+    else {
+        if (defined $field
             && $field->isa('HTML::FormFu::Element::Checkbox')
-            && !defined $value
-            && !$is_nullable )
-        {
-            $value = $col_info->{default_value};
-        }
-        elsif ( defined $value
-            || ( defined $field && $field->isa('HTML::FormFu::Element::Checkbox') ) )
-        {
-
-            # keep $value
-        }
-        else {
-            next;
-        }
-
-        if ( grep { $col eq $_ } @$rels ) {
-
-            # relationship of the same name, can't use accessor
-
-            $dbic->set_column( $col, $value );
-        }
-        else {
-            $dbic->$col($value);
+        ){
+            if ( !$is_nullable ) {
+                $value = $col_info->{default_value};
+            }
         }
     }
-
-    return 1;
+    return $value;
 }
 
-sub _save_non_columns {
+sub _save_columns {
     my ( $base, $dbic, $form ) = @_;
 
-    my @fields
-        = grep { is_direct_child( $base, $_ ) }
-        grep { defined $_->nested_name }
-        @{ $base->get_fields };
-
-    for my $field (@fields) {
+    for my $field ( @{ $base->get_fields }, ) { 
+        next if not is_direct_child( $base, $field );
+        my $name = $field->name;
+        $name = $field->original_name if $field->original_name;
+        my $accessor = $field->model_config->{DBIC}{accessor} || $name;
+        next if not defined $accessor;
+        next if $field->model_config->{DBIC}{delete_if_true};
         my $value = $form->param_value( $field->nested_name );
+        
+        my ($pk) = $dbic->result_source->primary_columns;
+        # don't set primary key to null or '' - for Pg SERIALs
+        next if ( $name eq $pk ) && ! ( defined $value && length $value );
 
         if ( $field->model_config->{DBIC}{delete_if_empty}
             && ( !defined $value || !length $value ) )
@@ -573,24 +504,44 @@ sub _save_non_columns {
             $dbic->delete;
             return;
         }
-        if ($field->isa('HTML::FormFu::Element::Checkbox')) {
+        if( $dbic->result_source->has_column( $accessor ) ){
+            $value = _fix_value( $dbic, $accessor, $value, $field );
+        }
+        elsif ($field->isa('HTML::FormFu::Element::Checkbox')) {
             # We are a checkbox.
             unless (defined $value) {
                 $value = 0;
             }
         }
-        next unless defined $value;
-        
-        my $accessor = $field->model_config->{DBIC}{accessor} || $field->nested_name;
-        if ($dbic->can($accessor)) {
+       
+        if ( ! $field->model_config->{DBIC}{accessor} 
+                and $dbic->result_source->has_relationship( $accessor )
+                and $dbic->result_source->has_column( $accessor )
+        ){
+            $dbic->set_column( $accessor, $value );
+        } 
+        elsif ($dbic->can($accessor)) {
             $dbic->$accessor($value);            
         } else {
             # We should just ignore
             #croak "cannot call $accessor on $dbic";
         }
     }
+   
+# for values inserted by add_valid - and not correlated to any field in the form
+    my $parent = $base;
+    do {
+        return 1 if defined $parent->nested_name;
+        $parent = $parent->parent; 
+    } until ( ! defined $parent );
 
-    return;
+    for my $valid ( $form->valid ){
+        next if @{$base->get_fields( name => $valid )};
+        next if not $dbic->can( $valid );
+        my $value = $form->param_value( $valid );
+        $dbic->$valid( $value );
+    }
+    return 1;
 }
 
 sub _save_multi_value_fields_many_to_many {

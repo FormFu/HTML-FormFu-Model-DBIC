@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 6;
+use Test::More tests => 7;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -43,5 +43,27 @@ $form->process( {
     is( $row->select_col,     '2' );
     is( $row->radio_col,      'yes' );
     is( $row->radiogroup_col, '3' )
+}
+
+$form->process( {
+        id             => '',
+        text_col       => 'a2',
+        password_col   => 'b2',
+        checkbox_col   => 'foo',
+        select_col     => '2',
+        radio_col      => 'yes',
+        radiogroup_col => '3',
+    } );
+
+{
+    my $row = $rs->new( {} );
+
+    $form->model('DBIC')->update($row);
+}
+
+{
+    my $row = $rs->find(2);
+
+    is( $row->text_col,       'a2' );
 }
 
