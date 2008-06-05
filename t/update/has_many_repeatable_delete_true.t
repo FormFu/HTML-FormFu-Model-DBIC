@@ -55,7 +55,7 @@ my ( $u2, $a2, $a3, $a4 );
 
     my $row = $user_rs->find($u2->id);
 
-    $form->model('DBIC')->update($row);
+    $form->model->update($row);
 
     my $user = $user_rs->find($u2->id);
 

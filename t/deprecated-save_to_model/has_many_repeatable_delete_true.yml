@@ -23,8 +23,7 @@ elements:
         name: delete
         value: 1
         model_config:
-          DBIC:
-            delete_if_true: 1
+          delete_if_true: 1
   
   - type: Hidden
     name: count

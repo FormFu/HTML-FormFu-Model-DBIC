@@ -24,7 +24,7 @@ $rs->create( { text_col => 'filler', } );
 {
     my $row = $rs->find(1);
 
-    $form->model('DBIC')->default_values($row);
+    $form->model->default_values($row);
 
     my $field = $form->get_element('method_test');
 

@@ -44,7 +44,7 @@ $form->process( {
 
     $master->insert;
 
-    $form->model('DBIC')->update($master);
+    $form->model->update($master);
 }
 
 {

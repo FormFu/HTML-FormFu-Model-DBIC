@@ -47,7 +47,7 @@ my $rs = $schema->resultset('User');
 {
     my $row = $rs->find(5);
 
-    $form->model('DBIC')->default_values($row);
+    $form->model->default_values($row);
 
     is( $form->get_field('id')->default,    '5' );
     is( $form->get_field('name')->default,  'nick' );

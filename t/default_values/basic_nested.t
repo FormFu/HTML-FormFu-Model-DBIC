@@ -36,7 +36,7 @@ $rs->create( {
 {
     my $row = $rs->find(2);
 
-    $form->model('DBIC')->default_values( $row, { nested_base => 'foo' } );
+    $form->model->default_values( $row, { nested_base => 'foo' } );
 
     my $fs = $form->get_element;
 

@@ -36,7 +36,7 @@ $rs->create( {
 {
     my $row = $rs->find(4);
 
-    $form->model('DBIC')->default_values($row);
+    $form->model->default_values($row);
 
     is( $form->get_field('id')->default,    '4' );
     is( $form->get_field('name')->default,  'nick' );

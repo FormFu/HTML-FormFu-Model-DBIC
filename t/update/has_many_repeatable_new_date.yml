@@ -12,8 +12,7 @@ elements:
     nested_name: addresses
     counter_name: count
     model_config:
-      DBIC:
-        new_empty_row: address
+      new_empty_row: address
 
     elements:
       - type: Hidden

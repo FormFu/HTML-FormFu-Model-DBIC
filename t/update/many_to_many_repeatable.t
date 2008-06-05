@@ -65,7 +65,7 @@ my $band_rs = $schema->resultset('Band');
 
     my $row = $user_rs->find(2);
 
-    $form->model('DBIC')->update($row);
+    $form->model->update($row);
 
     my $user = $user_rs->find(2);
 

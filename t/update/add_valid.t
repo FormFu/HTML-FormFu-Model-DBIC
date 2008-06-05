@@ -33,7 +33,7 @@ $form->process( {
 
     my $row = $rs->new( {} );
 
-    $form->model('DBIC')->update($row);
+    $form->model->update($row);
 }
 
 {

@@ -8,8 +8,7 @@ elements:
   - type: Text
     name: fullname
     model_config:
-      DBIC:
-        accessor: fullname
+      accessor: fullname
     
   - type: Submit
     name: submit

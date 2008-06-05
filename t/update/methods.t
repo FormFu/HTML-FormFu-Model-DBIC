@@ -26,7 +26,7 @@ my $rs = $schema->resultset('Master');
     {
         my $row = $rs->new( {} );
 
-        $form->model('DBIC')->update($row);
+        $form->model->update($row);
     }
 
     {
@@ -48,7 +48,7 @@ my $rs = $schema->resultset('Master');
         method_test => 'apejens2',
     });
     my $row = $rs->find(1);
-    $form->model('DBIC')->update($row);
+    $form->model->update($row);
     
     is( $row->text_col,                 'apejens2' );
     is( $row->checkbox_col,             0);

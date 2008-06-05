@@ -31,7 +31,7 @@ $form->process( {
 
 {
     # no resultset arg
-    $form->model('DBIC')->create;
+    $form->model->create;
 }
 
 {

@@ -51,7 +51,7 @@ $form->process( {
 
     $note->insert;
 
-    $form->model('DBIC')->update($master);
+    $form->model->update($master);
 }
 
 {

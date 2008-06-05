@@ -11,14 +11,12 @@ elements:
   - type: Select
     name: type
     model_config:
-      DBIC: 
-        aaa : aaa
+      aaa : aaa
   
   - type: Select
     name: type2_id
     model_config:
-      DBIC: 
-        resultset: Type2
+      resultset: Type2
   
   - type: Submit
     name: submit

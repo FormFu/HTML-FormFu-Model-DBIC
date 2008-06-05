@@ -36,7 +36,7 @@ $form->process( {
 {
     my $row = $rs->find(1);
 
-    $form->model('DBIC')->update($row);
+    $form->model->update($row);
 }
 
 {

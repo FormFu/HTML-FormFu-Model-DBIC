@@ -47,7 +47,7 @@ $form->process( {
 
     # no note, but next id 2
 
-    $form->model('DBIC')->update($master);
+    $form->model->update($master);
 }
 
 {

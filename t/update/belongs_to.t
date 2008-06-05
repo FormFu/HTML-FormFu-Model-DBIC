@@ -38,7 +38,7 @@ my $master;
     # should get master id 3
     $master = $rs->create( { text_col => 'b', type => 2, type2_id => 2 } );
 
-    $form->model('DBIC')->update($master);
+    $form->model->update($master);
 }
 
 {

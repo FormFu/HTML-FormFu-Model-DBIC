@@ -5,7 +5,6 @@ elements:
   - type: Select
     name: user
     model_config:
-      DBIC: 
-        resultset: User
-        condition_from_stash:
-          master: master_id
+      resultset: User
+      condition_from_stash:
+        master: master_id

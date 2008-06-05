@@ -26,7 +26,7 @@ $form->process( {
 {
     my $row = $rs->new( {} );
 
-    $form->model('DBIC')->update( $row, { nested_base => 'foo' } );
+    $form->model->update( $row, { nested_base => 'foo' } );
 }
 
 {

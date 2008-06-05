@@ -44,7 +44,7 @@ my $rs = $schema->resultset('Master');
 {
     my $row = $rs->find(3);
 
-    $form->model('DBIC')->default_values( $row, { nested_base => 'foo' } );
+    $form->model->default_values( $row, { nested_base => 'foo' } );
 
     is( $form->get_field( { nested_name => 'foo.id' } )->render_data->{value},
         3 );

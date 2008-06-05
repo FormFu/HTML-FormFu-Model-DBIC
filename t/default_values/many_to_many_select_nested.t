@@ -43,7 +43,7 @@ my $band_rs = $schema->resultset('Band');
 {
     my $row = $rs->find(4);
 
-    $form->model('DBIC')->default_values( $row, { nested_base => 'foo' } );
+    $form->model->default_values( $row, { nested_base => 'foo' } );
 
     is( $form->get_field('id')->default,   4 );
     is( $form->get_field('name')->default, 'Paul' );
