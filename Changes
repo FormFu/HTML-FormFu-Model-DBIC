@@ -1,0 +1,4 @@
+0.02005
+
+    - First CPAN release
+    - HTML::FormFu::Model::DBIC moved out of HTML::FormFu distribution
