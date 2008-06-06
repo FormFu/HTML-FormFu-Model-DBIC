@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use base 'HTML::FormFu::Model';
 
+use HTML::FormFu::Util qw( _merge_hashes );
 use Scalar::Util qw( blessed );
 use Storable qw( dclone );
 use Carp qw( croak );
@@ -10,10 +11,40 @@ use Carp qw( croak );
 our $VERSION = '0.02004';
 $VERSION = eval $VERSION;
 
+# sub _compatible_config() is only required as long as we support the legacy
+# model_config->{DBIC} style and can be factored out when we remove support
+# test this works by reverting the test suite back `svn up -r 1020 t`
+# before running the tests
+
+sub _compatible_config {
+    my ($object) = @_;
+    
+    return _compatible_attrs($object->model_config);
+}
+
+sub _compatible_attrs {
+    my ($config) = @_;
+    
+    return {} unless keys %$config;
+    
+    if ( exists $config->{DBIC} ) {
+        warn "model_config->{DBIC}{} is deprecated and is provided for compatibilty only\n"
+            . "and will be removed: use model_config->{} instead";
+
+        $config = dclone($config);
+
+        my $dbic = delete $config->{DBIC};
+        
+        return _merge_hashes( $config, $dbic );
+    }
+    
+    return $config;
+}
+
 sub options_from_model {
     my ( $self, $base, $attrs ) = @_;
 
-    $attrs ||= {};
+    $attrs = $attrs ? _compatible_attrs($attrs) : {};
 
     my $form      = $base->form;
     my $resultset = _get_resultset( $base, $form, $attrs );
@@ -94,7 +125,7 @@ sub _get_resultset {
 sub default_values {
     my ( $self, $dbic, $attrs ) = @_;
 
-    $attrs ||= {};
+    $attrs = $attrs ? _compatible_attrs($attrs) : {};
 
     my $form = $self->form;
     my $base = defined $attrs->{base} ? delete $attrs->{base} : $form;
@@ -128,13 +159,15 @@ sub is_direct_child {
 sub _fill_in_fields {
     my ( $base, $dbic, ) = @_;
     for my $field ( @{ $base->get_fields } ) {
-        my $name = $field->name;
-        next if not defined $name || $field->model_config->{accessor};
+        my $name   = $field->name;
+        my $config = _compatible_config($field);
+        
+        next if not defined $name || $config->{accessor};
         next if not is_direct_child( $base, $field );
 
         $name = $field->original_name if $field->original_name;
 
-        my $accessor = $field->model_config->{accessor};
+        my $accessor = $config->{accessor};
 
         if ( defined $accessor ) {
             $field->default( $dbic->$accessor );
@@ -152,10 +185,10 @@ sub _fill_in_fields {
                 $field->default( $dbic->$name );
             }
             elsif ($field->multi_value
-                && ($field->model_config->{default_column} 
+                && ($config->{default_column} 
                     || (ref($dbic->$name) && $dbic->$name->can('result_source')) )  ) {
 
-                my ($col) = $field->model_config->{default_column}
+                my ($col) = $config->{default_column}
                     || $dbic->$name->result_source->primary_columns;
                 
                 my $info = $dbic->result_source->relationship_info($name);
@@ -179,7 +212,8 @@ sub _fill_nested {
 
     for my $block ( @{ $base->get_all_elements } ) {
         next if $block->is_field;
-        my $rel = $block->nested_name;
+        my $rel    = $block->nested_name;
+        my $config = _compatible_config($block);
 
         # recursing only when $rel is a relation on $dbic
         next
@@ -199,7 +233,7 @@ sub _fill_nested {
 
             my @rows = $dbic->$rel->all;
             my $count
-                = $block->model_config->{new_empty_row}
+                = $config->{new_empty_row}
                 ? scalar @rows + 1
                 : scalar @rows;
 
@@ -220,11 +254,11 @@ sub _fill_nested {
 
             # remove 'delete' checkbox from the last repetition ?
 
-            if ( $block->model_config->{new_empty_row} ) {
+            if ( $config->{new_empty_row} ) {
                 my $last_rep = $block->get_elements->[-1];
 
                 my ($del_field)
-                    = grep { $_->model_config->{delete_if_true} }
+                    = grep { _compatible_config($_)->{delete_if_true} }
                     @{ $last_rep->get_fields };
 
                 if ( defined $del_field ) {
@@ -246,6 +280,8 @@ sub create {
 
     croak "invalid arguments" if @_ > 2;
 
+    $attrs = $attrs ? _compatible_attrs($attrs) : {};
+
     my $form = $self->form;
     my $base = defined $attrs->{base} ? delete $attrs->{base} : $form;
 
@@ -253,8 +289,8 @@ sub create {
         or croak 'schema required on form stash, if no row object provided';
 
     my $resultset = $attrs->{resultset}
-        || $base->model_config->{resultset}
-        || $form->model_config->{resultset}
+        || _compatible_config($base)->{resultset}
+        || _compatible_config($form)->{resultset}
         or croak 'could not find resultset name';
 
     $resultset = $schema->resultset($resultset);
@@ -269,7 +305,7 @@ sub update {
 
     croak "row object missing" if !defined $dbic;
 
-    $attrs ||= {};
+    $attrs = $attrs ? _compatible_attrs($attrs) : $attrs;
 
     my $form = $self->form;
     my $base = defined $attrs->{base} ? delete $attrs->{base} : $form;
@@ -361,6 +397,7 @@ sub _save_has_many {
 
     my @blocks = @{ $block->get_elements };
     my $max    = $#blocks;
+    my $config = _compatible_config($block);
 
     # iterate over blocks, not rows
     # new rows might have been created in the meantime
@@ -381,7 +418,7 @@ sub _save_has_many {
 
         if (   ( !defined $value || $value eq '' )
             && $i == $max
-            && $block->model_config->{new_empty_row} )
+            && $config->{new_empty_row} )
         {
 
             # insert a new row
@@ -414,7 +451,8 @@ sub _save_has_many {
 sub _insert_has_many {
     my ( $dbic, $form, $outer, $repetition, $rel ) = @_;
 
-    my $rows = $outer->model_config->{new_empty_row};
+    my $config = _compatible_config($outer);
+    my $rows   = defined $config->{new_empty_row} ? $config->{new_empty_row} : [];
 
     $rows = [$rows] if ref $rows ne 'ARRAY';
 
@@ -439,7 +477,7 @@ sub _insert_has_many {
 sub _delete_has_many {
     my ( $form, $row, $rep ) = @_;
 
-    my ($del_field) = grep { $_->model_config->{delete_if_true} } @{ $rep->get_fields };
+    my ($del_field) = grep { _compatible_config($_)->{delete_if_true} } @{ $rep->get_fields };
 
     return if !defined $del_field;
 
@@ -488,16 +526,18 @@ sub _save_columns {
         next if not is_direct_child( $base, $field );
         my $name = $field->name;
         $name = $field->original_name if $field->original_name;
-        my $accessor = $field->model_config->{accessor} || $name;
+        
+        my $config   = _compatible_config($field);
+        my $accessor = $config->{accessor} || $name;
         next if not defined $accessor;
-        next if $field->model_config->{delete_if_true};
+        next if $config->{delete_if_true};
         my $value = $form->param_value( $field->nested_name );
         
         my ($pk) = $dbic->result_source->primary_columns;
         # don't set primary key to null or '' - for Pg SERIALs
         next if ( $name eq $pk ) && ! ( defined $value && length $value );
 
-        if ( $field->model_config->{delete_if_empty}
+        if ( $config->{delete_if_empty}
             && ( !defined $value || !length $value ) )
         {
             $dbic->discard_changes if $dbic->is_changed;
@@ -514,7 +554,7 @@ sub _save_columns {
             }
         }
        
-        if ( ! $field->model_config->{accessor} 
+        if ( ! $config->{accessor} 
                 and $dbic->result_source->has_relationship( $accessor )
                 and $dbic->result_source->has_column( $accessor )
         ){
@@ -573,13 +613,15 @@ sub _save_multi_value_fields_many_to_many {
             my @rows;
 
             if (@values) {
-                my ($pk) = $field->model_config->{default_column}
+                my $config = _compatible_config($field);
+                
+                my ($pk) = $config->{default_column}
                     || $related->result_source->primary_columns;
 
                 $pk = "me.$pk" unless $pk =~ /\./;
 
                 @rows = $related->result_source->resultset->search(
-                    { %{ $field->model_config->{condition} || {} }, $pk => { -in => \@values } } )->all;
+                    { %{ $config->{condition} || {} }, $pk => { -in => \@values } } )->all;
             }
 
             my $set_method = "set_$name";
@@ -631,7 +673,7 @@ sub _save_repeatable_many_to_many {
 
                 if (   ( !defined $value || $value eq '' )
                     && $i == $max
-                    && $block->model_config->{new_empty_row} )
+                    && _compatible_config($block)->{new_empty_row} )
                 {
 
                     # insert a new row
@@ -678,7 +720,7 @@ sub _save_repeatable_many_to_many {
 sub _insert_many_to_many {
     my ( $dbic, $form, $outer, $repetition, $rel ) = @_;
 
-    my $rows = $outer->model_config->{new_empty_row};
+    my $rows = _compatible_config($outer)->{new_empty_row};
 
     $rows = [$rows] if ref $rows ne 'ARRAY';
 
@@ -705,7 +747,7 @@ sub _insert_many_to_many {
 sub _delete_many_to_many {
     my ( $form, $dbic, $row, $rel, $rep ) = @_;
 
-    my ($del_field) = grep { $_->model_config->{delete_if_true} } @{ $rep->get_fields };
+    my ($del_field) = grep { _compatible_config($_)->{delete_if_true} } @{ $rep->get_fields };
 
     return if !defined $del_field;
 
