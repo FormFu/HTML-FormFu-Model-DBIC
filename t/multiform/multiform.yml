@@ -8,15 +8,10 @@ crypt_args:
 forms:
   # form 1
   -
-    indicator: text_col
-    model_config:
-      resultset: Master
+    indicator: foo
     
     elements:
-      - name: id
-        type: Hidden
-      
-      - name: text_col
+      - name: foo
       
       - type: Submit
         name: submit
@@ -24,11 +19,19 @@ forms:
   # form 2
   -
     indicator: bar
-    model_config:
-      resultset: User
     
     elements:
       - name: bar
+      
+      - type: Submit
+        name: submit
+  
+  # form 3
+  -
+    indicator: baz
+    
+    elements:
+      - name: baz
       
       - type: Submit
         name: submit
