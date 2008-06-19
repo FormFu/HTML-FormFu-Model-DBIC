@@ -1,0 +1,34 @@
+---
+id: form
+auto_fieldset: 1
+
+crypt_args:
+  -key: 'my secret'
+
+forms:
+  # form 1
+  -
+    indicator: text_col
+    model_config:
+      resultset: Master
+    
+    elements:
+      - name: id
+        type: Hidden
+      
+      - name: text_col
+      
+      - type: Submit
+        name: submit
+  
+  # form 2
+  -
+    indicator: bar
+    model_config:
+      resultset: User
+    
+    elements:
+      - name: bar
+      
+      - type: Submit
+        name: submit
