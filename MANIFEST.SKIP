@@ -1,4 +1,8 @@
 ^t\/test\.db$
+^xt\/
+
+# not ready yet
+^t\/multiform
 
 ^\.perltidyrc$
 
