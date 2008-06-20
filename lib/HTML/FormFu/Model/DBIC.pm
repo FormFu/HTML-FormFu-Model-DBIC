@@ -212,6 +212,8 @@ sub _fill_nested {
 
     for my $block ( @{ $base->get_all_elements } ) {
         next if $block->is_field;
+        next if !$block->can('nested_name');
+
         my $rel    = $block->nested_name;
         my $config = _compatible_config($block);
 
