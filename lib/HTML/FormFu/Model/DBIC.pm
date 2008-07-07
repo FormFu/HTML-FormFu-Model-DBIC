@@ -232,7 +232,7 @@ sub _fill_nested {
 
         # first handle {label}
         
-        if ( defined ( my $label = $config->{label} ) ) {
+        if ( defined ( my $label = $config->{label} ) && $block->can('label') ) {
             my $has_rel = $dbic->result_source->has_relationship($label);
             
             if ($has_rel) {
