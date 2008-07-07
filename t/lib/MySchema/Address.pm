@@ -11,6 +11,7 @@ __PACKAGE__->table("address");
 __PACKAGE__->add_columns(
     id        => { data_type => "INTEGER" },
     user      => { data_type => "INTEGER" },
+    my_label  => { data_type => "TEXT" },
     address   => { data_type => "TEXT" },
 );
 

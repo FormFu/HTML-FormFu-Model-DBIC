@@ -202,6 +202,12 @@ sub _fill_in_fields {
                 $field->default($dbic->$name);
             }
         }
+        
+        # handle {label}
+        
+        if ( defined ( my $label = $config->{label} ) ) {
+            $field->label( $dbic->$label );
+        }
     }
 }
 

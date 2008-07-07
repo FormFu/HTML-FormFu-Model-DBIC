@@ -78,6 +78,7 @@ SQL
 CREATE TABLE address (
 	id        INTEGER PRIMARY KEY,
 	user      INTEGER,
+	my_label  TEXT,
 	address   TEXT
 );
 SQL
