@@ -206,7 +206,15 @@ sub _fill_in_fields {
         # handle {label}
         
         if ( defined ( my $label = $config->{label} ) ) {
-            $field->label( $dbic->$label );
+            my $has_rel = $dbic->result_source->has_relationship($label);
+            
+            if ($has_rel) {
+                # can't use direct accessor, if there's a rel of the same name
+                $field->label( $dbic->get_column($label) );
+            }
+            else {
+                $field->label( $dbic->$label );
+            }
         }
     }
 }
@@ -220,8 +228,23 @@ sub _fill_nested {
         next if $block->is_field;
         next if !$block->can('nested_name');
 
-        my $rel    = $block->nested_name;
         my $config = _compatible_config($block);
+
+        # first handle {label}
+        
+        if ( defined ( my $label = $config->{label} ) ) {
+            my $has_rel = $dbic->result_source->has_relationship($label);
+            
+            if ($has_rel) {
+                # can't use direct accessor, if there's a rel of the same name
+                $block->label( $dbic->get_column($label) );
+            }
+            else {
+                $block->label( $dbic->$label );
+            }
+        }
+
+        my $rel = $block->nested_name;
 
         # recursing only when $rel is a relation on $dbic
         next
