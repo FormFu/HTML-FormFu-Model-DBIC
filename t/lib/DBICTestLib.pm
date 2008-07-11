@@ -91,6 +91,7 @@ CREATE TABLE type (
 INSERT INTO `type` (`type`) VALUES('foo');
 INSERT INTO `type` (`type`) VALUES('bar');
 SQL
+
          $dbh->do( <<SQL );
 CREATE TABLE type2 (
 	id   INTEGER PRIMARY KEY,
@@ -99,7 +100,17 @@ CREATE TABLE type2 (
 INSERT INTO `type` (`type2`) VALUES('foo');
 INSERT INTO `type` (`type2`) VALUES('bar');
 SQL
-    
+
+        $dbh->do( <<SQL );
+CREATE TABLE has_many (
+	user  INTEGER,
+	key   TEXT,
+    value TEXT,
+    PRIMARY KEY (user, key)
+);
+SQL
+
 }
+
 
 1;

@@ -245,13 +245,15 @@ sub _fill_nested {
         }
 
         my $rel = $block->nested_name;
+        next if !defined $rel;
 
-        # recursing only when $rel is a relation on $dbic
-        next
-            unless defined $rel and (
-               $dbic->result_source->relationship_info($rel)
-            or $dbic->can($rel) && $dbic->can( 'add_to_' . $rel ) # many_to_many
-            );
+        my $has_rel = $dbic->result_source->relationship_info($rel)
+            || ( $dbic->can($rel) && $dbic->can( 'add_to_' . $rel ) ); # many_to_many
+
+        # recursing only when $rel is a relation or non-column accessor on $dbic
+        next unless $has_rel
+            || ( $dbic->can($rel) && !$dbic->result_source->has_column($rel) );
+
         if ( $block->is_repeatable && $block->increment_field_names ) {
 
             # check there's a field name matching the PK

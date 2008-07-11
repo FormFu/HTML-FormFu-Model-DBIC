@@ -23,6 +23,8 @@ __PACKAGE__->has_many( addresses => 'MySchema::Address', 'user' );
 
 __PACKAGE__->has_many( user_bands => 'MySchema::UserBand', 'user' );
 
+__PACKAGE__->has_many( hasmanys => 'MySchema::HasMany', 'user' );
+
 __PACKAGE__->many_to_many( bands => 'user_bands', 'band' );
 
 sub fullname {
@@ -48,6 +50,18 @@ sub fullname {
     my $name  = $self->get_column('name');
     
     return join ' ', grep {defined} $title, $name;
+}
+
+sub foo {
+    my ($self) = @_;
+    
+    my $row = $self->find_or_new_related( 'hasmanys', { key => 'foo' } );
+    
+    if ( @_ > 1 ) {
+        $row->update(@_);
+    }
+    
+    return $row;
 }
 
 1;
