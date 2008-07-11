@@ -364,6 +364,30 @@ sub update {
     _save_repeatable_many_to_many( $self, $base, $dbic, $form, $attrs, \@rels,
         \@cols );
 
+    # handle non-rel, non-column, nested_base accessors.
+    # - this highlights a failing of the approach of iterating over
+    # db cols + rels - we should maybe refactor to iterate over
+    # form blocks and fields instead ?
+
+    for my $block ( @{ $base->get_all_elements } ) {
+        next if $block->is_field;
+        next if !$block->can('nested_name');
+
+        my $rel = $block->nested_name;
+        next if !defined $rel;
+
+        next unless $dbic->can($rel);
+
+        next if grep { $rel eq $_ } @cols;
+        next if grep { $rel eq $_ } @rels;
+
+        next if $dbic->can( "add_to_" . $rel ); # many-to-many
+
+        if ( defined( my $row = $dbic->$rel ) ) {
+            update( $self, $row, { base => $block } );
+        }
+    }
+
     return $dbic;
 }
 
