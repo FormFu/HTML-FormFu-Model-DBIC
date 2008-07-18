@@ -15,31 +15,32 @@ $form->load_config_file('t/deprecated-save_to_model/many_to_many_select.yml');
 
 my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
 
-my $user_rs = $schema->resultset('User');
-my $band_rs = $schema->resultset('Band');
+my $master = $schema->resultset('Master')-> create({ id => 1 });
 
+my $band1;
+
+# filler rows
 {
-
     # user 1
-    my $u1 = $user_rs->new_result( { name => 'John' } );
-    $u1->insert;
-
-    # user 2
-    my $u2 = $user_rs->new_result( { name => 'Paul' } );
-    $u2->insert;
+    my $u1 = $master->create_related( 'user', { name => 'John' } );
 
     # band 1
-    my $b1 = $u1->add_to_bands( { band => 'the beatles' } );
+    $band1 = $u1->add_to_bands({ band => 'the beatles' });
+}
 
-    # user 2 => band 2
-    $u2->add_to_bands( { band => 'wings' } );
+# rows we're going to use
+{
+    # user 2
+    my $u2 = $master->create_related( 'user', { name => 'Paul', } );
 
-    # band 3
-    my $b3 = $band_rs->new_result( { band => 'the kinks' } );
-    $b3->insert;
-
-    # user 2 => band 1
-    $u2->add_to_bands($b1);
+    # band 2
+    $u2->add_to_bands({ band => 'wings' });
+    
+    # band 3 - not used
+    $schema->resultset('Band')->create({ band => 'the kinks' });
+    
+    # band 1
+    $u2->add_to_bands($band1);
 }
 
 # currently,
@@ -54,7 +55,7 @@ my $band_rs = $schema->resultset('Band');
 
     ok( $form->submitted_and_valid );
 
-    my $row = $user_rs->find(2);
+    my $row = $schema->resultset('User')->find(2);
 
     {
         my $warnings;
@@ -63,7 +64,11 @@ my $band_rs = $schema->resultset('Band');
         $form->save_to_model($row);
         ok( $warnings, 'warning thrown' );
     }
+}
 
+{
+    my $row = $schema->resultset('User')->find(2);
+    
     is( $row->name, 'Paul McCartney' );
 
     my @bands = $row->bands->all;

@@ -25,7 +25,7 @@ $rs->create( { text_col => 'filler', } );
 
 $rs->create( {
         text_col => 'a',
-        type     => 3,
+        type_id  => 3,
     } );
 
 {
@@ -33,8 +33,8 @@ $rs->create( {
 
     $form->model->default_values($row);
 
-    is( $form->get_field('id')->render_data->{value}, 2 );
+    is( $form->get_field('id')->default, 2 );
 
-    is( $form->get_field('type')->render_data->{value}, 3 );
+    is( $form->get_field('type_id')->default, 3 );
 }
 

@@ -9,9 +9,9 @@ __PACKAGE__->load_components(qw/ Core /);
 __PACKAGE__->table("user");
 
 __PACKAGE__->add_columns(
-    id     => { data_type => "INTEGER" },
-    master => { data_type => "INTEGER" },
-    name   => { data_type => "TEXT" },
+    id     => { data_type => "INTEGER", is_nullable => 0 },
+    master => { data_type => "INTEGER", is_nullable => 0 },
+    name   => { data_type => "TEXT", is_nullable => 0 },
     title  => { data_type => "TEXT" },
 );
 

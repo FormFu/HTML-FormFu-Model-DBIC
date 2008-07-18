@@ -9,7 +9,7 @@ elements:
     name: text_col
   
   - type: Select
-    name: type
+    name: type_id
 
   - type: Select
     name: type2_id

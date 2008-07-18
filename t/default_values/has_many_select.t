@@ -15,35 +15,29 @@ $form->load_config_file('t/default_values/has_many_select.yml');
 
 my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
 
-my $user_rs    = $schema->resultset('User');
-my $address_rs = $schema->resultset('Address');
+my $master = $schema->resultset('Master')->create({ id => 1 });
 
 {
 
     # insert some entries we'll ignore, so our rels don't have same ids
     # user 1
-    my $u1 = $user_rs->new_result( { name => 'foo' } );
-    $u1->insert;
+    my $u1 = $master->create_related( 'user', { name => 'foo' } );
 
     # address 1
-    my $a1 = $u1->new_related( 'addresses' => { address => 'somewhere' } );
-    $a1->insert;
+    $u1->create_related( 'addresses' => { address => 'somewhere' } );
 
     # should get user id 2
-    my $u2 = $user_rs->new_result( { name => 'nick', } );
-    $u2->insert;
+    my $u2 = $master->create_related( 'user', { name => 'nick', } );
 
     # should get address id 2
-    my $a2 = $u2->new_related( 'addresses', { address => 'home' } );
-    $a2->insert;
+    $u2->create_related( 'addresses', { address => 'home' } );
 
     # should get address id 3
-    my $a3 = $u2->new_related( 'addresses', { address => 'office' } );
-    $a3->insert;
+    $u2->create_related( 'addresses', { address => 'office' } );
 }
 
 {
-    my $row = $user_rs->find(2);
+    my $row = $schema->resultset('User')->find(2);
 
     $form->model->default_values($row);
 

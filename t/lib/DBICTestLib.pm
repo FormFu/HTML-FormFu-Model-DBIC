@@ -7,11 +7,13 @@ use DBI;
 use base 'Exporter';
 
 our @EXPORT_OK = qw/ new_db /;
+
 END {
     if ( -f 't/test.db') {
         unlink 't/test.db';
     }
 }
+
 sub new_db {
     
     if ( -f 't/test.db' ) {
@@ -28,86 +30,115 @@ sub new_db {
     
     $dbh->do( <<SQL );
 CREATE TABLE master (
-	id             INTEGER PRIMARY KEY,
-	text_col       TEXT,
-	password_col   TEXT,
-	checkbox_col   TEXT,
-	select_col     TEXT,
-	radio_col      TEXT,
-	radiogroup_col TEXT,
-	date_col       DATETIME,
-	type           INTEGER,
-	type2_id       INTEGER,
-	not_in_form    TEXT
+  id             INTEGER PRIMARY KEY NOT NULL,
+  text_col       TEXT,
+  password_col   TEXT,
+  checkbox_col   TEXT DEFAULT '0',
+  select_col     TEXT,
+  radio_col      TEXT,
+  radiogroup_col TEXT,
+  date_col       DATETIME,
+  type_id        INTEGER,
+  type2_id       INTEGER,
+  not_in_form    TEXT
 );
+
 SQL
-    
+
+
     $dbh->do( <<SQL );
 CREATE TABLE note (
-	id     INTEGER PRIMARY KEY,
-	master INTEGER,
-	note   TEXT
+  id     INTEGER PRIMARY KEY NOT NULL,
+  master INTEGER NOT NULL,
+  note   TEXT NOT NULL
 );
+
 SQL
-    
+
+
     $dbh->do( <<SQL );
 CREATE TABLE user (
-	id     INTEGER PRIMARY KEY,
-	master INTEGER,
-	name   TEXT,
-	title  TEXT
+  id     INTEGER PRIMARY KEY NOT NULL,
+  master INTEGER NOT NULL,
+  name   TEXT NOT NULL,
+  title  TEXT
 );
+
 SQL
-    
+
+
     $dbh->do( <<SQL );
 CREATE TABLE band (
-	id   INTEGER PRIMARY KEY,
-	band TEXT
+  id   INTEGER PRIMARY KEY NOT NULL,
+  band TEXT NOT NULL
 );
+
 SQL
-    
+
+
     $dbh->do( <<SQL );
 CREATE TABLE user_band (
-	user INTEGER,
-	band INTEGER,
-	PRIMARY KEY (user, band)
+  user INTEGER NOT NULL,
+  band INTEGER NOT NULL,
+  PRIMARY KEY (user, band)
 );
+
 SQL
-    
+
+
     $dbh->do( <<SQL );
 CREATE TABLE address (
-	id        INTEGER PRIMARY KEY,
-	user      INTEGER,
-	my_label  TEXT,
-	address   TEXT
+  id       INTEGER PRIMARY KEY NOT NULL,
+  user     INTEGER NOT NULL,
+  my_label TEXT,
+  address  TEXT NOT NULL
 );
+
 SQL
-    
-        $dbh->do( <<SQL );
+
+
+    $dbh->do( <<SQL );
 CREATE TABLE type (
-	id   INTEGER PRIMARY KEY,
-	type TEXT
+  id   INTEGER PRIMARY KEY NOT NULL,
+  type TEXT NOT NULL
 );
-INSERT INTO `type` (`type`) VALUES('foo');
-INSERT INTO `type` (`type`) VALUES('bar');
+
 SQL
 
-         $dbh->do( <<SQL );
+    $dbh->do(" INSERT INTO type VALUES (1,'foo')" );;
+    $dbh->do(" INSERT INTO type VALUES (2,'bar')" );
+
+
+    $dbh->do( <<SQL );
 CREATE TABLE type2 (
-	id   INTEGER PRIMARY KEY,
-	type TEXT
+  id   INTEGER PRIMARY KEY NOT NULL,
+  type TEXT NOT NULL
 );
-INSERT INTO `type` (`type2`) VALUES('foo');
-INSERT INTO `type` (`type2`) VALUES('bar');
+
 SQL
 
-        $dbh->do( <<SQL );
+    $dbh->do("INSERT INTO type2 VALUES (1,'foo')" );
+    $dbh->do("INSERT INTO type2 VALUES (2,'bar')" );
+
+
+    $dbh->do( <<SQL );
 CREATE TABLE has_many (
-	user  INTEGER,
-	key   TEXT,
-    value TEXT,
-    PRIMARY KEY (user, key)
+  user  INTEGER NOT NULL,
+  key   TEXT NOT NULL,
+  value TEXT NOT NULL,
+  PRIMARY KEY (user, key)
 );
+
+SQL
+
+    $dbh->do( <<SQL );
+CREATE TABLE schedule (
+  id     INTEGER PRIMARY KEY NOT NULL,
+  master INTEGER NOT NULL,
+  date   DATETIME NOT NULL,
+  note   TEXT NOT NULL
+);
+
 SQL
 
 }

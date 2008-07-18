@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 3;
+use Test::More tests => 4;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -17,44 +17,44 @@ my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
 
 my $rs = $schema->resultset('Master');
 
-# Fake submitted form
-$form->process( {
+# filler rows
+{
+    # master 1
+    $rs->create( { text_col => 'xxx' } );
+
+    # master 2
+    my $m2 = $rs->create( { text_col => 'yyy' } );
+
+    # user 1
+    $m2->create_related( 'user', { name => 'zzz' } );
+}
+
+# rows we're going to use
+{
+    # master 3
+    my $m3 = $rs->create( { text_col => 'b' } );
+
+    # user 2
+    $m3->create_related( 'user', { name => 'xxx' } );
+}
+
+{
+    $form->process( {
         "id"        => 3,
         "text_col"  => 'a',
         "user.id"   => 2,
         "user.name" => 'bar',
     } );
+    
+    ok( $form->submitted_and_valid );
 
-{
-
-    # insert some entries we'll ignore, so our rels don't have same ids
-    # test id 1
-    my $t1 = $rs->new_result( { text_col => 'xxx' } );
-    $t1->insert;
-
-    # test id 2
-    my $t2 = $rs->new_result( { text_col => 'yyy' } );
-    $t2->insert;
-
-    # user id 1
-    my $n1 = $t2->new_related( 'user', { name => 'zzz' } );
-    $n1->insert;
-
-    # should get master id 3
-    my $master = $rs->new( { text_col => 'b' } );
-
-    $master->insert;
-
-    # should get note id 2
-    my $note = $master->new_related( 'user', {} );
-
-    $note->insert;
-
-    $form->model->update($master);
+    my $row = $schema->resultset('Master')->find(3);
+    
+    $form->model->update($row);
 }
 
 {
-    my $row = $rs->find(3);
+    my $row = $schema->resultset('Master')->find(3);
 
     is( $row->text_col, 'a' );
 

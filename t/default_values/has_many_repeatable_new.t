@@ -15,26 +15,26 @@ $form->load_config_file('t/default_values/has_many_repeatable_new.yml');
 
 my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
 
-my $rs = $schema->resultset('User');
+my $master = $schema->resultset('Master')->create({ id => 1 });
 
 # filler
 
-$rs->create( {
+$master->create_related( 'user', {
         name      => 'filler',
         addresses => [ { address => 'somewhere', } ] } );
 
-$rs->create( { name => 'filler2', } );
+$master->create_related( 'user', { name => 'filler2', } );
 
-$rs->create( { name => 'filler3', } );
+$master->create_related( 'user', { name => 'filler3', } );
 
 # row we're going to use
 
-$rs->create( {
+$master->create_related( 'user', {
         name      => 'nick',
         addresses => [ { address => 'home', }, { address => 'office', } ] } );
 
 {
-    my $row = $rs->find(4);
+    my $row = $schema->resultset('User')->find(4);
 
     $form->model->default_values($row);
 

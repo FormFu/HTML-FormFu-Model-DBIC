@@ -15,26 +15,37 @@ $form->load_config_file('t/update/opt_accessor_nested.yml');
 
 my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
 
-my $rs = $schema->resultset('User');
+my $master = $schema->resultset('Master')->create({ id => 1 });
 
-# filler row
+# filler rows
+{
+    # user 1
+    my $u1 = $master->create_related( 'user', {
+        name => 'mr. bar',
+    } );
+}
 
-$rs->create( { name => 'foo', } );
+# rows we're going to use
+{
+    # user 2
+    my $u2 = $master->create_related( 'user', {
+        name => 'mr. foo',
+    } );
+}
 
-# Fake submitted form
-$form->process( {
+{
+    $form->process( {
         'foo.id'       => 2,
         'foo.fullname' => 'mr billy bob',
     } );
-
-{
-    my $row = $rs->new( {} );
+    
+    my $row = $schema->resultset('User')->find(2);
 
     $form->model->update( $row, { nested_base => 'foo' } );
 }
 
 {
-    my $row = $rs->find(2);
+    my $row = $schema->resultset('User')->find(2);
 
     is( $row->title,    'mr' );
     is( $row->name,     'billy bob' );

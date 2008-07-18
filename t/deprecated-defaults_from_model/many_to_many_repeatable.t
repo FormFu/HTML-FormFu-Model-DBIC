@@ -15,26 +15,26 @@ $form->load_config_file('t/deprecated-defaults_from_model/many_to_many_repeatabl
 
 my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
 
-my $rs = $schema->resultset('User');
+my $master = $schema->resultset('Master')->create({ id => 1 });
 
 # filler
 
 {
-    my $user = $rs->create( { name => 'filler', } );
+    my $user = $master->create_related( 'user', { name => 'filler', } );
 
     $user->add_to_bands( { band => 'a', } );
 
-    $rs->create( { name => 'filler2', } );
+    $master->create_related( 'user', { name => 'filler2', } );
 
-    $rs->create( { name => 'filler3', } );
+    $master->create_related( 'user', { name => 'filler3', } );
 
-    $rs->create( { name => 'filler4', } );
+    $master->create_related( 'user', { name => 'filler4', } );
 }
 
 # row we're going to use
 
 {
-    my $user = $rs->create( { name => 'nick', } );
+    my $user = $master->create_related( 'user', { name => 'nick', } );
 
     $user->add_to_bands( { band => 'b', } );
 
@@ -44,7 +44,7 @@ my $rs = $schema->resultset('User');
 }
 
 {
-    my $row = $rs->find(5);
+    my $row = $schema->resultset('User')->find(5);
 
     {
         my $warnings;

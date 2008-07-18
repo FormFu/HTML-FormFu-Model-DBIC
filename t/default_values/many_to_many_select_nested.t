@@ -15,25 +15,24 @@ $form->load_config_file('t/default_values/many_to_many_select_nested.yml');
 
 my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
 
-my $rs      = $schema->resultset('User');
-my $band_rs = $schema->resultset('Band');
+my $master = $schema->resultset('Master')->create({ id => 1 });
 
 # filler
 
 {
-    $rs->create( { name => 'John', } );
+    $master->create_related( 'user', { name => 'John', } );
 
-    $rs->create( { name => 'Ringo', } );
+    $master->create_related( 'user', { name => 'Ringo', } );
 
-    $rs->create( { name => 'George', } );
+    my $user3 = $master->create_related( 'user', { name => 'George', } );
 
-    $band_rs->create( { band => 'the kinks', } );
+    $user3->add_to_bands( { band => 'the kinks', } );
 }
 
 # row we're going to use
 
 {
-    my $paul = $rs->create( { name => 'Paul', } );
+    my $paul = $master->create_related( 'user', { name => 'Paul', } );
 
     $paul->add_to_bands( { band => 'the beatles', } );
 
@@ -41,7 +40,7 @@ my $band_rs = $schema->resultset('Band');
 }
 
 {
-    my $row = $rs->find(4);
+    my $row = $schema->resultset('User')->find(4);
 
     $form->model->default_values( $row, { nested_base => 'foo' } );
 

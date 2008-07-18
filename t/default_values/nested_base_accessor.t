@@ -15,15 +15,15 @@ $form->load_config_file('t/default_values/nested_base_accessor.yml');
 
 my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
 
-my $rs = $schema->resultset('User');
+my $master = $schema->resultset('Master')->create({ id => 1 });
 
 # filler row
 
-$rs->create( { name => 'filler', } );
+$master->create_related( 'user', { name => 'filler', } );
 
 # row we're going to use
 
-my $row = $rs->create( {
+my $row = $master->create_related( 'user', {
         name => 'mr. foo',
     } );
 
@@ -31,7 +31,7 @@ $row->create_related( 'hasmanys', { key => 'bar', value => 'a' } );
 $row->create_related( 'hasmanys', { key => 'foo', value => 'b' } );
 
 {
-    my $row = $rs->find(2);
+    my $row = $schema->resultset('User')->find(2);
 
     $form->model->default_values($row);
 

@@ -21,22 +21,20 @@ my $rs = $schema->resultset('Master');
 $form->process( {
         "id"       => 3,
         "text_col" => 'a',
-        'type'     => '1',
+        'type_id'  => '1',
         'type2_id' => '1',
     } );
 
-my $master;
+# filler rows
 {
-
     # insert some entries we'll ignore, so our rels don't have same ids
-    # test id 1
-    my $t1 = $rs->create( { text_col => 'xxx' } );
+    $rs->create( { id => 1 } );
+    $rs->create( { id => 2 } );
+}
 
-    # test id 2
-    my $t2 = $rs->create( { text_col => 'yyy' } );
-
-    # should get master id 3
-    $master = $rs->create( { text_col => 'b', type => 2, type2_id => 2 } );
+{
+    # master 3
+    my $master = $rs->create( { text_col => 'b', type_id => 2, type2_id => 2 } );
 
     {
         my $warnings;
@@ -48,10 +46,10 @@ my $master;
 }
 
 {
-    my $row = $rs->find( $master->id );
+    my $row = $rs->find(3);
 
     is( $row->type->id, '1' );
-    is( $row->type2_id, '1' );
+    is( $row->type2->id, '1' );
 
 }
 

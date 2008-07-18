@@ -9,8 +9,14 @@ __PACKAGE__->load_components(qw/ Core /);
 __PACKAGE__->table("user_band");
 
 __PACKAGE__->add_columns(
-    user => { data_type => "INTEGER" },
-    band => { data_type => "INTEGER" },
+    user => {
+        data_type   => "INTEGER",
+        is_nullable => 0,
+    },
+    band => {
+        data_type   => "INTEGER",
+        is_nullable => 0,
+    },
 );
 
 __PACKAGE__->set_primary_key( "user", "band" );

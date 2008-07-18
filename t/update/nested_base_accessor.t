@@ -15,33 +15,47 @@ $form->load_config_file('t/default_values/nested_base_accessor.yml');
 
 my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
 
-my $rs = $schema->resultset('User');
+my $master = $schema->resultset('Master')->create({ id => 1 });
 
+# filler rows
 {
-    my $row = $rs->create( {
+    # user 1
+    my $u1 = $master->create_related( 'user', {
+        name => 'mr. bar',
+    } );
+
+    # hasmanys 2,3
+    $u1->create_related( 'hasmanys', { key => 'bar', value => 'a' } );
+    $u1->create_related( 'hasmanys', { key => 'foo', value => 'b' } );
+}
+
+# rows we're going to use
+{
+    # user 2
+    my $u2 = $master->create_related( 'user', {
         name => 'mr. foo',
     } );
 
-    $row->create_related( 'hasmanys', { key => 'bar', value => 'a' } );
-    $row->create_related( 'hasmanys', { key => 'foo', value => 'b' } );
+    # hasmanys 3 4
+    $u2->create_related( 'hasmanys', { key => 'bar', value => 'c' } );
+    $u2->create_related( 'hasmanys', { key => 'foo', value => 'd' } );
 }
 
-# Fake submitted form
-$form->process( {
-        'name'      => 'Mr. Foo',
-        'foo.value' => 'c',
-    } );
-
 {
-    my $row = $rs->find(1);
+    $form->process( {
+        'name'      => 'Mr. Foo',
+        'foo.value' => 'e',
+    } );
+    
+    my $row = $schema->resultset('User')->find(2);
 
     $form->model->update($row);
 }
 
 {
-    my $row = $rs->find(1);
+    my $row = $schema->resultset('User')->find(2);
 
     is ( $row->name, 'Mr. Foo' );
-    is ( $row->foo->value, 'c' );
+    is ( $row->foo->value, 'e' );
 }
 

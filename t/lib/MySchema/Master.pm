@@ -11,7 +11,7 @@ __PACKAGE__->load_components(qw/
 __PACKAGE__->table("master");
 
 __PACKAGE__->add_columns(
-    id             => { data_type => "INTEGER" },
+    id             => { data_type => "INTEGER", is_nullable => 0 },
     text_col       => { data_type => "TEXT" },
     password_col   => { data_type => "TEXT" },
     checkbox_col   => {
@@ -23,7 +23,7 @@ __PACKAGE__->add_columns(
     radio_col      => { data_type => "TEXT" },
     radiogroup_col => { data_type => "TEXT" },
     date_col       => { data_type => "DATETIME" },
-    type           => { data_type => "INTEGER" },
+    type_id        => { data_type => "INTEGER" },
     type2_id       => { data_type => "INTEGER" },
     not_in_form    => { data_type => "TEXT" },
 );
@@ -34,9 +34,11 @@ __PACKAGE__->might_have( note => 'MySchema::Note', 'master' );
 
 __PACKAGE__->has_one( user => 'MySchema::User', 'master' );
 
+__PACKAGE__->has_many( schedules => 'MySchema::Schedule', 'master' );
+
 __PACKAGE__->belongs_to(
     type => 'MySchema::Type',
-    { 'foreign.id' => 'self.type' } );
+    { 'foreign.id' => 'self.type_id' } );
 
 __PACKAGE__->belongs_to(
     type2 => 'MySchema::Type2',

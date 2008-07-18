@@ -1,57 +1,89 @@
 use strict;
 use warnings;
-use Test::More tests => 2;
+use Test::More tests => 9;
 
 use HTML::FormFu;
 use lib 't/lib';
 use DBICTestLib 'new_db';
 use MySchema;
+use DateTime;
 
 new_db();
 
 my $form = HTML::FormFu->new;
 
 $form->load_config_file('t/update/has_many_repeatable_new_date.yml');
-#$form->process; die $form;
+
 my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
 
-my $user_rs    = $schema->resultset('User');
-my $address_rs = $schema->resultset('Address');
+my $master_rs = $schema->resultset('Master');
 
+# filler rows
 {
-    # insert some entries we'll ignore, so our rels don't have same ids
     # user 1
-    my $u1 = $user_rs->new_result( { name => 'foo' } );
-    $u1->insert;
+    my $m1 = $master_rs->create( { text_col => 'foo' } );
+    
+    # schedule 1
+    $m1->create_related( 'schedules', {
+        date => DateTime->new( year => 2008, month => 7, day => 16 ),
+        note => 'a',
+    } );
+    
+    # schedule 2
+    $m1->create_related( 'schedules', {
+        date => DateTime->new( year => 2008, month => 7, day => 17 ),
+        note => 'b',
+    } );
+}
+
+# rows we're going to use
+{
+    # user 2
+    my $m2 = $master_rs->create( { text_col => 'orig text', } );
+    
+    # schedule 3
+    $m2->create_related( 'schedules', {
+        date => DateTime->new( year => 2008, month => 7, day => 18 ),
+        note => 'c',
+    } );
 }
 
 {
     $form->process( {
-            'id'                  => 1,
-            'name'                => 'new nick',
-            'count'               => 1,
-            'addresses.address_1_day' => 11,
-            'addresses.address_1_month' => 11,
-            'addresses.address_1_year' => 1985,
+            'text_col'               => 'new text',
+            'count'                  => 1,
+            'schedules.id_1'         => 3,
+            'schedules.date_1_day'   => '19',
+            'schedules.date_1_month' => '07',
+            'schedules.date_1_year'  => '2008',
+            'schedules.note_1'       => 'hi',
         } );
 
     ok( $form->submitted_and_valid );
 
-#       for ( @{ $form->get_errors } ) {
-#                       print Data::Dumper::Dumper({ id => $_->name, msg => $_->message }).$/;
-#               }
-              
-    $form->process( {
-            'id'                  => 1,
-            'name'                => 'new nick',
-            'count'               => 1,
-            'addresses.address_1' => "12.12.1985"
-        } );
+    my $row = $schema->resultset('Master')->find(2);
 
-    ok( $form->submitted_and_valid );
-
-#       for ( @{ $form->get_errors } ) {
-#                       print Data::Dumper::Dumper({ id => $_->name, msg => $_->message }).$/;
-#               }
+    $form->model->update($row);
 }
 
+{
+    my $user = $schema->resultset('Master')->find(2);
+
+    is( $user->text_col, 'new text' );
+
+    my @schedule = $user->schedules->all;
+
+    is( scalar @schedule, 1 );
+
+    is( $schedule[0]->id, 3 );
+    
+    my $date = $schedule[0]->date;
+    
+    isa_ok( $date, 'DateTime' );
+    
+    is( $date->year,  2008 );
+    is( $date->month, 7 );
+    is( $date->day,   19 );
+    
+    is( $schedule[0]->note, 'hi' );
+}

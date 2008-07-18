@@ -18,32 +18,36 @@ my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
 $context->mock( model => sub { $schema->resultset('Band') } );
 $form->stash( { context => $context } );
 
-my $user_rs = $schema->resultset('User');
-my $band_rs = $schema->resultset('Band');
+my $master = $schema->resultset('Master')->create({ id => 1 });
 
+my $band1;
+
+# filler rows
 {
-
     # user 1
-    my $u1 = $user_rs->create( { name => 'John' } );
-
-    # user 2
-    my $u2 = $user_rs->create( { name => 'Paul' } );
+    my $u1 = $master->create_related( 'user', { name => 'John' } );
 
     # band 1
-    my $b1 = $u1->add_to_bands( { band => 'the beatles' } );
+    $band1 = $u1->add_to_bands( { band => 'the beatles' } );
+}
 
-    # user 2 => band 2
+# rows we're going to use
+{
+    # user 2
+    my $u2 = $master->create_related( 'user', { name => 'Paul' } );
+
+    $u2->add_to_bands($band1);
+    
+    # band 2
     $u2->add_to_bands( { band => 'wings' } );
 
-    # user 2 => band 1
-    $u2->add_to_bands($b1);
-
     # band 3
-    $band_rs->create( { band => 'the kinks' } );
+    $schema->resultset('Band')->create( { band => 'the kinks' } );
 }
 
 {
     $form->process;
+    
     is_deeply(
         $form->get_field('bands')->options,
         [ {     'label_attributes' => {},

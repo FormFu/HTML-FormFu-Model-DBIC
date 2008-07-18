@@ -15,21 +15,21 @@ $form->load_config_file('t/deprecated-defaults_from_model/opt_accessor_nested.ym
 
 my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
 
-my $rs = $schema->resultset('User');
+my $master = $schema->resultset('Master')->create({ id => 1 });
 
 # filler row
 
-$rs->create( { name => 'foo', } );
+$master->create_related( 'user', { name => 'foo', } );
 
 # row we're going to use
 
-$rs->create( {
+$master->create_related( 'user', {
         title => 'mr',
         name  => 'billy bob',
     } );
 
 {
-    my $row = $rs->find(2);
+    my $row = $schema->resultset('User')->find(2);
 
     {
         my $warnings;

@@ -423,7 +423,7 @@ sub _save_relationships {
             my $target = $dbic->find_related( $rel, {} );
 
             if ( !defined $target && grep { length $_ } values %$params ) {
-                $target = $dbic->create_related( $rel, {} );
+                $target = $dbic->new_related( $rel, {} );
             }
 
             next if !defined $target;
