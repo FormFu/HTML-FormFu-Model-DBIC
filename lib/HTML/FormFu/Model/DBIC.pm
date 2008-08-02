@@ -37,7 +37,7 @@ sub _compatible_attrs {
         
         return _merge_hashes( $config, $dbic );
     }
-    
+    $config->{new_empty_row} ||= $config->{new_empty_row_multi};
     return $config;
 }
 
@@ -474,7 +474,7 @@ sub _save_has_many {
         my $row;
 
         if (   ( !defined $value || $value eq '' )
-            && $i == $max
+            && ($i == $max || $config->{new_empty_row_multi})
             && $config->{new_empty_row} )
         {
 
@@ -980,6 +980,34 @@ to be added.
           
           - type: Text
             name: author
+
+If you want to add more than one new row you can use
+C<< $block->model_config->{new_empty_row_multi} >> instead of
+C<< $block->model_config->{new_empty_row} >>. To limit the maximum number of new 
+rows put a L<range|HTML::FormFu::Constraints::Range> constraint on the
+C<count> field.
+
+    ---
+    element:
+      - type: Repeatable
+        nested_name: authors
+        model_config:
+          dbic: 
+            new_empty_row_multi: author
+        
+        elements:
+          - type: Hidden
+            name: id
+          
+          - type: Text
+            name: author
+            
+      - type: Hidden
+        name: count
+        constraints: 
+          - type: Range
+            max: 3
+        
 
 If you want to provide a L<Checkbox|HTML::FormFu::Element::Checkbox> or
 similar field, to allow the user to select whether given rows should be 
