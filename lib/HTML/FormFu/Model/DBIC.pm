@@ -18,26 +18,29 @@ $VERSION = eval $VERSION;
 
 sub _compatible_config {
     my ($object) = @_;
-    
-    return _compatible_attrs($object->model_config);
+
+    return _compatible_attrs( $object->model_config );
 }
 
 sub _compatible_attrs {
     my ($config) = @_;
-    
+
     return {} unless keys %$config;
-    
+
     if ( exists $config->{DBIC} ) {
-        warn "model_config->{DBIC}{} is deprecated and is provided for compatibilty only\n"
+        warn
+            "model_config->{DBIC}{} is deprecated and is provided for compatibilty only\n"
             . "and will be removed: use model_config->{} instead";
 
         $config = dclone($config);
 
         my $dbic = delete $config->{DBIC};
-        
+
         return _merge_hashes( $config, $dbic );
     }
+    
     $config->{new_empty_row} ||= $config->{new_empty_row_multi};
+    
     return $config;
 }
 
@@ -62,12 +65,10 @@ sub options_from_model {
     if ( !defined $label_col ) {
 
         # use first text column
-        ($label_col)
-            = grep {
-                my $data_type = $source->column_info($_)->{data_type};
-                defined $data_type && $data_type =~ /text|varchar/i
-            }
-            $source->columns;
+        ($label_col) = grep {
+            my $data_type = $source->column_info($_)->{data_type};
+            defined $data_type && $data_type =~ /text|varchar/i
+        } $source->columns;
     }
     $label_col = $id_col if !defined $label_col;
 
@@ -101,7 +102,7 @@ sub options_from_model {
 
 sub _get_resultset {
     my ( $base, $form, $attrs ) = @_;
-    
+
     my $schema  = $form->stash->{schema};
     my $context = $form->stash->{context};
 
@@ -161,7 +162,7 @@ sub _fill_in_fields {
     for my $field ( @{ $base->get_fields } ) {
         my $name   = $field->name;
         my $config = _compatible_config($field);
-        
+
         next if not defined $name || $config->{accessor};
         next if not is_direct_child( $base, $field );
 
@@ -184,13 +185,16 @@ sub _fill_in_fields {
             elsif ($has_col) {
                 $field->default( $dbic->$name );
             }
-            elsif ($field->multi_value
-                && ($config->{default_column} 
-                    || (ref($dbic->$name) && $dbic->$name->can('result_source')) )  ) {
+            elsif (
+                $field->multi_value
+                && ($config->{default_column}
+                    || ( ref( $dbic->$name )
+                        && $dbic->$name->can('result_source') ) ) )
+            {
 
                 my ($col) = $config->{default_column}
                     || $dbic->$name->result_source->primary_columns;
-                
+
                 my $info = $dbic->result_source->relationship_info($name);
                 if ( !defined $info or $info->{attrs}{accessor} eq 'multi' ) {
                     my @defaults = $dbic->$name->get_column($col)->all;
@@ -198,17 +202,19 @@ sub _fill_in_fields {
                 }
             }
             else {
+
                 # This field is a method expected to return the value
-                $field->default($dbic->$name);
+                $field->default( $dbic->$name );
             }
         }
-        
+
         # handle {label}
-        
-        if ( defined ( my $label = $config->{label} ) ) {
+
+        if ( defined( my $label = $config->{label} ) ) {
             my $has_rel = $dbic->result_source->has_relationship($label);
-            
+
             if ($has_rel) {
+
                 # can't use direct accessor, if there's a rel of the same name
                 $field->label( $dbic->get_column($label) );
             }
@@ -231,11 +237,12 @@ sub _fill_nested {
         my $config = _compatible_config($block);
 
         # first handle {label}
-        
-        if ( defined ( my $label = $config->{label} ) && $block->can('label') ) {
+
+        if ( defined( my $label = $config->{label} ) && $block->can('label') ) {
             my $has_rel = $dbic->result_source->has_relationship($label);
-            
+
             if ($has_rel) {
+
                 # can't use direct accessor, if there's a rel of the same name
                 $block->label( $dbic->get_column($label) );
             }
@@ -248,11 +255,14 @@ sub _fill_nested {
         next if !defined $rel;
 
         my $has_rel = $dbic->result_source->relationship_info($rel)
-            || ( $dbic->can($rel) && $dbic->can( 'add_to_' . $rel ) ); # many_to_many
+            || ( $dbic->can($rel) && $dbic->can( 'add_to_' . $rel ) )
+            ;    # many_to_many
 
         # recursing only when $rel is a relation or non-column accessor on $dbic
-        next unless $has_rel
-            || ( $dbic->can($rel) && !$dbic->result_source->has_column($rel) );
+        next
+            unless $has_rel
+                || ( $dbic->can($rel)
+                    && !$dbic->result_source->has_column($rel) );
 
         if ( $block->is_repeatable && $block->increment_field_names ) {
 
@@ -273,7 +283,8 @@ sub _fill_nested {
             my $blocks = $block->repeat($count);
 
             for my $rep ( 0 .. $#rows ) {
-                default_values( $self, $rows[$rep], { base => $blocks->[$rep] } );
+                default_values( $self, $rows[$rep],
+                    { base => $blocks->[$rep] } );
             }
 
             # set the counter field to the number of rows
@@ -321,14 +332,15 @@ sub create {
     my $schema = $form->stash->{schema}
         or croak 'schema required on form stash, if no row object provided';
 
-    my $resultset = $attrs->{resultset}
+    my $resultset 
+        = $attrs->{resultset}
         || _compatible_config($base)->{resultset}
         || _compatible_config($form)->{resultset}
         or croak 'could not find resultset name';
 
     $resultset = $schema->resultset($resultset);
 
-    my $dbic = $resultset->new_result({});
+    my $dbic = $resultset->new_result( {} );
 
     return $self->update( $dbic, { %$attrs, base => $base } );
 }
@@ -350,7 +362,7 @@ sub update {
 
     my $rs   = $dbic->result_source;
     my @rels = $rs->relationships;
-    my @cols = $rs->columns;    
+    my @cols = $rs->columns;
 
     _save_columns( $base, $dbic, $form ) or return;
 
@@ -381,7 +393,7 @@ sub update {
         next if grep { $rel eq $_ } @cols;
         next if grep { $rel eq $_ } @rels;
 
-        next if $dbic->can( "add_to_" . $rel ); # many-to-many
+        next if $dbic->can( "add_to_" . $rel );    # many-to-many
 
         if ( defined( my $row = $dbic->$rel ) ) {
             update( $self, $row, { base => $block } );
@@ -474,7 +486,7 @@ sub _save_has_many {
         my $row;
 
         if (   ( !defined $value || $value eq '' )
-            && ($i == $max || $config->{new_empty_row_multi})
+            && ( $i == $max || $config->{new_empty_row_multi} )
             && $config->{new_empty_row} )
         {
 
@@ -509,7 +521,7 @@ sub _insert_has_many {
     my ( $dbic, $form, $outer, $repetition, $rel ) = @_;
 
     my $config = _compatible_config($outer);
-    my $rows   = defined $config->{new_empty_row} ? $config->{new_empty_row} : [];
+    my $rows = defined $config->{new_empty_row} ? $config->{new_empty_row} : [];
 
     $rows = [$rows] if ref $rows ne 'ARRAY';
 
@@ -534,7 +546,9 @@ sub _insert_has_many {
 sub _delete_has_many {
     my ( $form, $row, $rep ) = @_;
 
-    my ($del_field) = grep { _compatible_config($_)->{delete_if_true} } @{ $rep->get_fields };
+    my ($del_field)
+        = grep { _compatible_config($_)->{delete_if_true} }
+        @{ $rep->get_fields };
 
     return if !defined $del_field;
 
@@ -550,12 +564,15 @@ sub _delete_has_many {
 }
 
 sub _fix_value {
-    my( $dbic, $col, $value, $field, ) = @_;
+    my ( $dbic, $col, $value, $field, ) = @_;
     my $col_info    = $dbic->column_info($col);
     my $is_nullable = $col_info->{is_nullable} || 0;
     my $data_type   = $col_info->{data_type} || '';
     if ( defined $value ) {
-        if ( (     $is_nullable || $data_type =~ m/^timestamp|date|int|float|numeric/i )
+        if ( (     $is_nullable
+                || $data_type =~ m/^timestamp|date|int|float|numeric/i
+            )
+
             # comparing to '' does not work for inflated objects
             && !ref $value 
             && $value eq ''
@@ -565,9 +582,9 @@ sub _fix_value {
         }
     }
     else {
-        if (defined $field
-            && $field->isa('HTML::FormFu::Element::Checkbox')
-        ){
+        if ( defined $field
+            && $field->isa('HTML::FormFu::Element::Checkbox') )
+        {
             if ( !$is_nullable ) {
                 $value = $col_info->{default_value};
             }
@@ -579,20 +596,21 @@ sub _fix_value {
 sub _save_columns {
     my ( $base, $dbic, $form ) = @_;
 
-    for my $field ( @{ $base->get_fields }, ) { 
+    for my $field ( @{ $base->get_fields }, ) {
         next if not is_direct_child( $base, $field );
         my $name = $field->name;
         $name = $field->original_name if $field->original_name;
-        
-        my $config   = _compatible_config($field);
+
+        my $config = _compatible_config($field);
         my $accessor = $config->{accessor} || $name;
         next if not defined $accessor;
         next if $config->{delete_if_true};
         my $value = $form->param_value( $field->nested_name );
-        
+
         my ($pk) = $dbic->result_source->primary_columns;
+
         # don't set primary key to null or '' - for Pg SERIALs
-        next if ( $name eq $pk ) && ! ( defined $value && length $value );
+        next if ( $name eq $pk ) && !( defined $value && length $value );
 
         if ( $config->{delete_if_empty}
             && ( !defined $value || !length $value ) )
@@ -601,42 +619,45 @@ sub _save_columns {
             $dbic->delete;
             return;
         }
-        if( $dbic->result_source->has_column( $accessor ) ){
+        if ( $dbic->result_source->has_column($accessor) ) {
             $value = _fix_value( $dbic, $accessor, $value, $field );
         }
-        elsif ($field->isa('HTML::FormFu::Element::Checkbox')) {
+        elsif ( $field->isa('HTML::FormFu::Element::Checkbox') ) {
+
             # We are a checkbox.
-            unless (defined $value) {
+            unless ( defined $value ) {
                 $value = 0;
             }
         }
-       
-        if ( ! $config->{accessor} 
-                and $dbic->result_source->has_relationship( $accessor )
-                and $dbic->result_source->has_column( $accessor )
-        ){
+
+        if (   !$config->{accessor}
+            and $dbic->result_source->has_relationship($accessor)
+            and $dbic->result_source->has_column($accessor) )
+        {
             $dbic->set_column( $accessor, $value );
-        } 
-        elsif ($dbic->can($accessor)) {
-            $dbic->$accessor($value);            
-        } else {
+        }
+        elsif ( $dbic->can($accessor) ) {
+            $dbic->$accessor($value);
+        }
+        else {
+
             # We should just ignore
             #croak "cannot call $accessor on $dbic";
         }
     }
-   
+
 # for values inserted by add_valid - and not correlated to any field in the form
     my $parent = $base;
     do {
         return 1 if defined $parent->nested_name;
-        $parent = $parent->parent; 
-    } until ( ! defined $parent );
+        $parent = $parent->parent;
+    } until ( !defined $parent );
 
-    for my $valid ( $form->valid ){
-        next if @{$base->get_fields( name => $valid )};
-        next if not $dbic->can( $valid );
-        my $value = $form->param_value( $valid );
-        $dbic->$valid( $value );
+    for my $valid ( $form->valid ) {
+        next if @{ $base->get_fields( name => $valid ) };
+        next if not $dbic->can($valid);
+        my $value = $form->param_value($valid);
+        $dbic->$valid($value);
     }
     return 1;
 }
@@ -671,14 +692,15 @@ sub _save_multi_value_fields_many_to_many {
 
             if (@values) {
                 my $config = _compatible_config($field);
-                
+
                 my ($pk) = $config->{default_column}
                     || $related->result_source->primary_columns;
 
                 $pk = "me.$pk" unless $pk =~ /\./;
 
-                @rows = $related->result_source->resultset->search(
-                    { %{ $config->{condition} || {} }, $pk => { -in => \@values } } )->all;
+                @rows = $related->result_source->resultset->search( {
+                        %{ $config->{condition} || {} },
+                        $pk => { -in => \@values } } )->all;
             }
 
             my $set_method = "set_$name";
@@ -804,7 +826,9 @@ sub _insert_many_to_many {
 sub _delete_many_to_many {
     my ( $form, $dbic, $row, $rel, $rep ) = @_;
 
-    my ($del_field) = grep { _compatible_config($_)->{delete_if_true} } @{ $rep->get_fields };
+    my ($del_field)
+        = grep { _compatible_config($_)->{delete_if_true} }
+        @{ $rep->get_fields };
 
     return if !defined $del_field;
 
