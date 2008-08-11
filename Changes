@@ -1,8 +1,13 @@
-0.03001
+0.03002
 
     - New {label} setting.
+    
+    - New {new_empty_row_multi} setting.
+    
     - Allow {nested_base} on non-column, non-rel methods.
+    
     - Bugfix: RT#35861 - not all non-field elements have a nested_name() method.
+    
     - Bugfix: use new_related() instead of create_related() before setting
       column values, to ensure we don't die on NOT NULL columns.
 
