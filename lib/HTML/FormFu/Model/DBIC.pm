@@ -969,8 +969,7 @@ set C<< $field->model_config->{delete_if_empty} >> to true.
           - type: Text
             name: review
             model_config:
-              dbic:
-                delete_if_empty: 1
+              delete_if_empty: 1
 
 =head3 has_many and many_to_many relationships
 
@@ -995,8 +994,7 @@ to be added.
       - type: Repeatable
         nested_name: authors
         model_config:
-          dbic: 
-            new_empty_row: author
+          new_empty_row: author
         
         elements:
           - type: Hidden
@@ -1016,8 +1014,7 @@ C<count> field.
       - type: Repeatable
         nested_name: authors
         model_config:
-          dbic: 
-            new_empty_row_multi: author
+          new_empty_row_multi: author
         
         elements:
           - type: Hidden
@@ -1044,8 +1041,7 @@ field.
       - type: Repeatable
         nested_name: authors
         model_config:
-          dbic:
-            delete_if_true: delete
+          delete_if_true: delete
         
         elements:
           - type: Hidden
@@ -1076,8 +1072,7 @@ primary key, set C<< $field->model_config->{default_column} >>.
         - type: Checkboxgroup
           name: authors
           model_config:
-            dbic:
-              default_column: foo
+            default_column: foo
 
 
 =head3 non-column accessors
@@ -1091,8 +1086,7 @@ C<< $field->model_config->{accessor} >>.
       - type: Text
         name: foo
         model_config:
-          dbic:
-            accessor: method_name
+          accessor: method_name
 
 =head2 update
 
