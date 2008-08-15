@@ -1006,7 +1006,7 @@ to be added.
 If you want to add more than one new row you can use
 C<< $block->model_config->{new_empty_row_multi} >> instead of
 C<< $block->model_config->{new_empty_row} >>. To limit the maximum number of new 
-rows put a L<range|HTML::FormFu::Constraints::Range> constraint on the
+rows put a L<range|HTML::FormFu::Constraint::Range> constraint on the
 C<count> field.
 
     ---
