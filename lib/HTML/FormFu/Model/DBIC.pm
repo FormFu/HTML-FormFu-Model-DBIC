@@ -38,9 +38,9 @@ sub _compatible_attrs {
 
         return _merge_hashes( $config, $dbic );
     }
-    
+
     $config->{new_empty_row} ||= $config->{new_empty_row_multi};
-    
+
     return $config;
 }
 

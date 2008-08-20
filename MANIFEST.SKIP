@@ -1,5 +1,7 @@
 ^t\/test\.db$
 ^xt\/
+^config\.txt$
+^MySchema.*\.sql$
 
 # not ready yet
 ^t\/multiform
