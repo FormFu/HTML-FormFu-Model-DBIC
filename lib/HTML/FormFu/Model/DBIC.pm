@@ -231,7 +231,7 @@ sub _fill_nested {
     my ( $self, $base, $dbic ) = @_;
 
     for my $block ( @{ $base->get_all_elements } ) {
-        next if $block->is_field;
+        next if $block->is_field && !$block->is_block;
         next if !$block->can('nested_name');
 
         my $config = _compatible_config($block);
