@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 6;
+use Test::More tests => 7;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -23,6 +23,7 @@ my $rs = $schema->resultset('Master');
             password_col   => 'xyzb',
             checkbox_col   => 'xyzfoo',
             select_col     => 'xyz2',
+            combobox_col   => 'combo',
             radio_col      => 'xyzyes',
             radiogroup_col => 'xyz3',
         } );
@@ -32,13 +33,15 @@ my $rs = $schema->resultset('Master');
 
 # Fake submitted form
 $form->process( {
-        id             => 1,
-        text_col       => 'a',
-        password_col   => 'b',
-        checkbox_col   => 'foo',
-        select_col     => '2',
-        radio_col      => 'yes',
-        radiogroup_col => '3',
+        id                  => 1,
+        text_col            => 'a',
+        password_col        => 'b',
+        checkbox_col        => 'foo',
+        select_col          => '2',
+        combobox_col_select => '',
+        combobox_col_text   => 'txt',
+        radio_col           => 'yes',
+        radiogroup_col      => '3',
     } );
 
 {
@@ -53,6 +56,7 @@ $form->process( {
     is( $row->text_col,       'a' );
     is( $row->password_col,   'b' );
     is( $row->checkbox_col,   'foo' );
+    is( $row->combobox_col,   'txt' );
     is( $row->select_col,     '2' );
     is( $row->radio_col,      'yes' );
     is( $row->radiogroup_col, '3' );

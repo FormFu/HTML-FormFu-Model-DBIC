@@ -35,6 +35,7 @@ CREATE TABLE master (
   password_col   TEXT,
   checkbox_col   TEXT DEFAULT '0',
   select_col     TEXT,
+  combobox_col   TEXT,
   radio_col      TEXT,
   radiogroup_col TEXT,
   date_col       DATETIME,

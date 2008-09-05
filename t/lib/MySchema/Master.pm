@@ -20,6 +20,7 @@ __PACKAGE__->add_columns(
         is_nullable   => 0,
     },
     select_col     => { data_type => "TEXT" },
+    combobox_col   => { data_type => "TEXT" },
     radio_col      => { data_type => "TEXT" },
     radiogroup_col => { data_type => "TEXT" },
     date_col       => { data_type => "DATETIME" },

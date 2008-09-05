@@ -22,7 +22,14 @@ elements:
       - [1, one]
       - [2, two]
       - [3, three]
-      
+  
+  - type: ComboBox
+    name: combobox_col
+    options:
+      - [1, one]
+      - [2, two]
+      - [3, three]
+  
   - type: Radio
     name: radio_col
     value: yes

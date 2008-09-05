@@ -1,3 +1,7 @@
+
+
+    - Tests for new ComboBox element.
+
 0.03003 2008-08-21
 
     - Updated to work with is_field/is_block changes in HTML-FormFu
