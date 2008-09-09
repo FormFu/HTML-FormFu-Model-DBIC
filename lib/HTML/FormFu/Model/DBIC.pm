@@ -113,11 +113,13 @@ sub _get_resultset {
     }
     elsif ( defined $context && defined $attrs->{model} ) {
 
-        return $context->model( $attrs->{model} );
-    }
-    elsif ( defined $context ) {
-
-        return $context->model;
+        my $model = $context->model( $attrs->{model} );
+        
+        if ( defined( my $rs = $attrs->{resultset} ) ) {
+            $model = $model->resultset( $rs );
+        }
+        
+        return $model;
     }
 
     croak "need a schema or context";
@@ -855,6 +857,17 @@ HTML::FormFu::Model::DBIC - Integrate HTML::FormFu with DBIx::Class
 
 =head1 SYNOPSIS
 
+If using L<Catalyst>, ensure your L<DBIx::Class> schema is placed in the
+form's L<stash|HTML::FormFu/stash>, by setting this in your application
+config (C<MyApp.pm>), where C<ModelName> is the name of your model that will
+be passed to C<< $c->model($name) >>.
+
+    <Controller::HTML::FormFu>
+        <model_stash>
+            schema = ModelName
+        <model_stash>
+    </Controller::HTML::FormFu>
+
 Set a forms' default values from a DBIx::Class row object:
 
     my $row = $resultset->find( $id );
@@ -1100,33 +1113,92 @@ L<update_or_insert|DBIx::Class::Row/update_or_insert>.
 See L</default_values> for specifics about what relationships are supported
 and how to structure your forms.
 
-=head3 Automatically creating a new row object
+=head2 create
 
-If you're using L</update> to create a new row object, you don't 
-need to create one yourself, as long as the L<DBIx::Class> Schema is on the
-form L</stash>, and the ResultSet name is set in either the C<%config>
-argument, the Form's L<HTML::FormFu/model_config>, or the Block's
-L<HTML::FormFu/model_config> (if L</update> is called on a Block
-element).
+Arguments: [\%config]
 
-If you're using L<Catalyst::Controller::HTML::FormFu>, it can automatically
-place the schema on the Form's stash, by using the following Catalyst config
-(where C<MySchema> is the name of your Catalyst model).
+Return Value: $dbic_row
 
-    'Controller::HTML::FormFu':
-      model_stash:
-        schema: MySchema
+Like L</update>, but doesn't require a C<$dbic_row> argument.
+
+You need to ensure the DBIC schema is available on the form stash - see
+L</SYNOPSIS> for an example config.
+
+The C<resultset> must be set either in the method arguments, or the form or
+block's C<model_config>.
 
 An example of setting the ResultSet name on a Form:
 
     ---
     model_config:
       resultset: FooTable
+    
+    elements:
+      # [snip]
 
-Note that if you still want to pass a C<%config> argument, you must pass
-C<undef> in place of the row:
+=head2 options_from_model
 
-    $form->update( undef, \%config );
+Populates a multi-valued field, with values from the database.
+
+This method should not be called directly, but is called for you during
+C<< $form->process >> by fields that inherit from
+L<HTML::FormFu::Element::_Group>. This includes:
+
+=over
+
+=item L<HTML::FormFu::Element::Select>
+
+=item L<HTML::FormFu::Element::Checkboxgroup>
+
+=item L<HTML::FormFu::Element::Radiogroup>
+
+=back
+
+To use, ensure the DBIC schema is available on the form stash - see
+L</SYNOPSIS> for an example config - and you must set the appropriate
+C<resultset> on the element C<model_config>:
+
+    element:
+      - type: Select
+        name: foo
+        model_config:
+          resultset: TableClass
+
+The column used for the element values is set with the C<model_config>
+value C<id_column> - or if not set, the table's primary column is used.
+
+    element:
+      - type: Select
+        name: foo
+        model_config:
+          resultset: TableClass
+          id_column: pk_col
+
+The column used for the element labels is set with the C<model_config>
+value C<label_column> - or if not set, the first text/varchar column found
+in the table is used - or if one is not found, the <id_column> is used
+instead.
+
+    element:
+      - type: Select
+        name: foo
+        model_config:
+          resultset: TableClass
+          label_column: label_col
+
+You can set a C<condition>, which will be passed as the 1st arguement to
+L<DBIx::Class::ResultSet/search>.
+
+    element:
+      - type: Select
+        name: foo
+        model_config:
+          resultset: TableClass
+          condition:
+            type: is_foo
+
+You can set C<attributes>, which will be passed as the 2nd arguement to
+L<DBIx::Class::ResultSet/search>.
 
 =head1 FAQ
 
