@@ -5,5 +5,4 @@ elements:
     - type: Select
       name: method_select_test
     - type: Checkbox
-      value: 1
       name: method_checkbox_test

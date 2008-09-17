@@ -567,9 +567,11 @@ sub _delete_has_many {
 
 sub _fix_value {
     my ( $dbic, $col, $value, $field, ) = @_;
+    
     my $col_info    = $dbic->column_info($col);
     my $is_nullable = $col_info->{is_nullable} || 0;
     my $data_type   = $col_info->{data_type} || '';
+    
     if ( defined $value ) {
         if ( (     $is_nullable
                 || $data_type =~ m/^timestamp|date|int|float|numeric/i
@@ -583,15 +585,15 @@ sub _fix_value {
             $value = undef;
         }
     }
-    else {
-        if ( defined $field
-            && $field->isa('HTML::FormFu::Element::Checkbox') )
-        {
-            if ( !$is_nullable ) {
-                $value = $col_info->{default_value};
-            }
-        }
+    
+    if ( !defined $value
+        && defined $field
+        && $field->isa('HTML::FormFu::Element::Checkbox')
+        && !$is_nullable )
+    {
+        $value = 0;
     }
+    
     return $value;
 }
 

@@ -33,7 +33,7 @@ CREATE TABLE master (
   id             INTEGER PRIMARY KEY NOT NULL,
   text_col       TEXT,
   password_col   TEXT,
-  checkbox_col   TEXT DEFAULT '0',
+  checkbox_col   BOOLEAN DEFAULT 1,
   select_col     TEXT,
   combobox_col   TEXT,
   radio_col      TEXT,

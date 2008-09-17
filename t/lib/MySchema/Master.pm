@@ -11,12 +11,15 @@ __PACKAGE__->load_components(qw/
 __PACKAGE__->table("master");
 
 __PACKAGE__->add_columns(
-    id             => { data_type => "INTEGER", is_nullable => 0 },
+    id             => {
+        data_type => "INTEGER",
+        is_nullable => 0,
+    },
     text_col       => { data_type => "TEXT" },
     password_col   => { data_type => "TEXT" },
     checkbox_col   => {
-        data_type => "TEXT",
-        default_value => 0,
+        data_type => "BOOLEAN",
+        default_value => 1,
         is_nullable   => 0,
     },
     select_col     => { data_type => "TEXT" },
