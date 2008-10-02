@@ -1049,14 +1049,15 @@ If you want to provide a L<Checkbox|HTML::FormFu::Element::Checkbox> or
 similar field, to allow the user to select whether given rows should be 
 deleted (or, in the case of C<many_to_many> relationships, unrelated),
 set C<< $block->model_config->{delete_if_true} >> to the name of that
-field.
+field.  Make sure the name of this field does not clash with one of
+your L<DBIx::Class::Row> object method names (especially delete).
 
     ---
     element:
       - type: Repeatable
         nested_name: authors
         model_config:
-          delete_if_true: delete
+          delete_if_true: deletion_marker
         
         elements:
           - type: Hidden
@@ -1066,7 +1067,7 @@ field.
             name: author
           
           - type: Checkbox
-            name: delete
+            name: deletion_marker
 
 =head3 many_to_many selection
 
