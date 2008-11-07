@@ -874,14 +874,14 @@ Set a forms' default values from a DBIx::Class row object:
 
     my $row = $resultset->find( $id );
     
-    $form->default_values( $row );
+    $form->model->default_values( $row );
 
 Update the database from a submitted form:
 
     if ( $form->submitted_and_valid ) {
         my $row = $resultset->find( $form->param('id') );
         
-        $form->update( $row );
+        $form->model->update( $row );
     }
 
 =head1 METHODS
@@ -891,6 +891,8 @@ Update the database from a submitted form:
 Arguments: $dbic_row, [\%config]
 
 Return Value: $form
+
+    $form->model->default_values( $row );
 
 Set a form's default values from a DBIx::Class row.
 
@@ -1110,6 +1112,8 @@ Arguments: [$dbic_row], [\%config]
 
 Return Value: $dbic_row
 
+    $form->model->update( $row );
+
 Update the database with the submitted form values. Uses 
 L<update_or_insert|DBIx::Class::Row/update_or_insert>.
 
@@ -1121,6 +1125,8 @@ and how to structure your forms.
 Arguments: [\%config]
 
 Return Value: $dbic_row
+
+    $form->model->create( $row );
 
 Like L</update>, but doesn't require a C<$dbic_row> argument.
 
@@ -1214,7 +1220,7 @@ you can first add them to the form with L<add_valid|HTML::FormFu/add_valid>.
     
     $form->add_valid( passwd => $passwd );
     
-    $form->update( $row );
+    $form->model->update( $row );
 
 C<add_valid> works for fieldnames that don't exist in the form.
 
