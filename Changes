@@ -1,6 +1,15 @@
+0.03006 2008-12-03
 
-
+    - options_from_model() - If we've a Catalyst context but no schema on
+      the form stash, use config values for 'model' and 'resultset'
+    
+    - update() - if a checkbox/radio value isn't submitted, and the column
+      is NOT NULL, set it to 0 (zero), not DEFAULT VALUE.
+    
     - Tests for new ComboBox element.
+    
+    - Modified delete_if_true example to no longer use "delete" as a
+      form item name - this is bad!
 
 0.03003 2008-08-21
 
