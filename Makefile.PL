@@ -12,7 +12,6 @@ requires 'Task::Weaken'; # to ensure Scalar::Util was built with weaken()
 
 test_requires 'Test::MockObject';
 
-tests 't/*.t t/*/*.t';
+tests_recursive;
 
-auto_install();
 &WriteAll;
