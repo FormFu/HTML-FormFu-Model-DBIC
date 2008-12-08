@@ -1,3 +1,7 @@
+0.03007 2008-12-08
+
+    - Bump required version no. of HTML-FormFu to 0.03007
+
 0.03006 2008-12-03
 
     - options_from_model() - If we've a Catalyst context but no schema on
