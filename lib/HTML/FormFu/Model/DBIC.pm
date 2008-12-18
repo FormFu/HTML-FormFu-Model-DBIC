@@ -866,8 +866,8 @@ be passed to C<< $c->model($name) >>.
 
     <Controller::HTML::FormFu>
         <model_stash>
-            schema = ModelName
-        <model_stash>
+            schema ModelName
+        </model_stash>
     </Controller::HTML::FormFu>
 
 Set a forms' default values from a DBIx::Class row object:
