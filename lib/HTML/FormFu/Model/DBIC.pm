@@ -670,7 +670,7 @@ sub _save_multi_value_fields_many_to_many {
     my ( $base, $dbic, $form, $attrs, $rels, $cols ) = @_;
 
     my @fields = grep {
-        defined $attrs->{nested_base}
+        ( defined $attrs->{nested_base} && defined $_->parent->nested_name )
             ? $_->parent->nested_name eq $attrs->{nested_base}
             : !$_->nested
         }
