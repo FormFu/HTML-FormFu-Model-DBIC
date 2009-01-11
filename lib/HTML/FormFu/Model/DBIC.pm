@@ -609,6 +609,7 @@ sub _save_columns {
         my $accessor = $config->{accessor} || $name;
         next if not defined $accessor;
         next if $config->{delete_if_true};
+	next if $config->{read_only};
         my $value = $form->param_value( $field->nested_name );
 
         my ($pk) = $dbic->result_source->primary_columns;
@@ -1223,6 +1224,18 @@ you can first add them to the form with L<add_valid|HTML::FormFu/add_valid>.
     $form->model->update( $row );
 
 C<add_valid> works for fieldnames that don't exist in the form.
+
+=head2 Set a field read only
+
+You can make a field read only. The value of such fields cannot be changed by the user even if he submits a value for it.
+
+  $field->model_config->{read_only} = 1;
+  
+  - Name: field
+    model_config:
+      read_only: 1
+
+See L<HTML::FormFu::Element::Label>.
 
 =head1 CAVEATS
 

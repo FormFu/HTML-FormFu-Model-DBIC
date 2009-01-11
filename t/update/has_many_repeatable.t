@@ -72,3 +72,24 @@ my $master = $schema->resultset('Master')->create({ id => 1 });
     is( $add[1]->address, 'new office' );
 }
 
+my $el = $form->get_all_element({name => "name"});
+$el->model_config->{read_only} = 1;
+{
+    $form->process( {
+            'id'                  => 2,
+            'name'                => 'new new nick',
+        } );
+
+    ok( $form->submitted_and_valid );
+
+    my $row = $schema->resultset('User')->find(2);
+
+    $form->model->update($row);
+}
+
+{
+    my $user = $schema->resultset('User')->find(2);
+
+    is( $user->name, 'new nick' );
+
+}
