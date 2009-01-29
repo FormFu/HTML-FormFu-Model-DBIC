@@ -90,11 +90,11 @@ sub options_from_model {
     my @defaults = $result->all;
 
     if ( $attrs->{localize_label} ) {
-        @defaults = map { { value => $_->id_col, label_loc => $_->label_col, } }
+        @defaults = map { { value => $_->get_column($id_col), label_loc => $_->get_column($label_col), } }
             @defaults;
     }
     else {
-        @defaults = map { [ $_->$id_col, $_->$label_col ] } @defaults;
+        @defaults = map { [ $_->get_column($id_col), $_->get_column($label_col) ] } @defaults;
     }
 
     return @defaults;
