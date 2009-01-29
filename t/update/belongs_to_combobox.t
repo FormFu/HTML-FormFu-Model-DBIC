@@ -15,6 +15,8 @@ $form->load_config_file('t/default_values/belongs_to_lookup_table_combobox.yml')
 
 my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
 
+$form->stash->{schema} = $schema;
+
 my $rs = $schema->resultset('Master');
 
 # Fake submitted form
