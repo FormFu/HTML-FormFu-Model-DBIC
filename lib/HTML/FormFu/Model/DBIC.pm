@@ -1201,6 +1201,15 @@ instead.
           resultset: TableClass
           label_column: label_col
 
+To pass the database label values via the form's localization object, set
+C<localize_label>
+
+    element:
+      - type: Select
+        name: foo
+        model_config:
+          localize_label: 1
+
 You can set a C<condition>, which will be passed as the 1st arguement to
 L<DBIx::Class::ResultSet/search>.
 
