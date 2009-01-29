@@ -121,6 +121,11 @@ sub _get_resultset {
         
         return $model;
     }
+    elsif ( defined $context ) {
+        my $model = $context->model;
+        
+        return $model if defined $model;
+    }
 
     croak "need a schema or context";
 }
