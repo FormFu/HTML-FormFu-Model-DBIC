@@ -607,14 +607,17 @@ sub _save_columns {
 
     for my $field ( @{ $base->get_fields }, ) {
         next if not is_direct_child( $base, $field );
+        
+        my $config = _compatible_config($field);
+        next if $config->{delete_if_true};
+        next if $config->{read_only};
+        
         my $name = $field->name;
         $name = $field->original_name if $field->original_name;
-
-        my $config = _compatible_config($field);
+        
         my $accessor = $config->{accessor} || $name;
         next if not defined $accessor;
-        next if $config->{delete_if_true};
-	next if $config->{read_only};
+        
         my $value = $form->param_value( $field->nested_name );
 
         my ($pk) = $dbic->result_source->primary_columns;
