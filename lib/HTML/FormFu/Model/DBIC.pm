@@ -143,10 +143,8 @@ sub default_values {
             && ( !defined $base->nested_name
                 || $base->nested_name ne $attrs->{nested_base} );
 
-    my $rs = $dbic->result_source;
-
-    _fill_in_fields( $base, $dbic, );
-    _fill_nested( $self, $base, $dbic, );
+    _fill_in_fields( $base, $dbic );
+    _fill_nested( $self, $base, $dbic );
 
     return $form;
 }
@@ -165,7 +163,7 @@ sub is_direct_child {
 
 # fills in values for all direct children fields of $base
 sub _fill_in_fields {
-    my ( $base, $dbic, ) = @_;
+    my ( $base, $dbic ) = @_;
     for my $field ( @{ $base->get_fields } ) {
         my $name   = $field->name;
         my $config = _compatible_config($field);
