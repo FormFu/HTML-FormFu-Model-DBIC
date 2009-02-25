@@ -50,20 +50,24 @@ my $band1;
     
     is_deeply(
         $form->get_field('bands')->options,
-        [ {     'label_attributes' => {},
-                'value'            => '1',
-                'label'            => 'the beatles',
-                'attributes'       => {}
+        [ {     'label_attributes'     => {},
+                'value'                => '1',
+                'label'                => 'the beatles',
+                'attributes'           => {},
+                'container_attributes' => {},
             },
-            {   'label_attributes' => {},
-                'value'            => '2',
-                'label'            => 'wings',
-                'attributes'       => {}
+            {   'label_attributes'     => {},
+                'value'                => '2',
+                'label'                => 'wings',
+                'attributes'           => {},
+                'container_attributes' => {},
             },
-            {   'label_attributes' => {},
-                'value'            => '3',
-                'label'            => 'the kinks',
-                'attributes'       => {} }
+            {   'label_attributes'     => {},
+                'value'                => '3',
+                'label'                => 'the kinks',
+                'attributes'           => {},
+                'container_attributes' => {},
+            },
         ],
         "Options set from the model"
     );
