@@ -9,8 +9,7 @@ elements:
     nested_name: schedules
     counter_name: count
     model_config:
-      empty_rows: 1
-      new_rows_max: 1
+      new_empty_row: date
 
     elements:
       - type: Hidden

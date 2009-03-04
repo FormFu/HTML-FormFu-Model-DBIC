@@ -17,6 +17,9 @@ elements:
     elements:
       - type: Hidden
         name: id
+        constraints:
+            - type: DependOn
+              others: address
       
       - type: Text
         name: address
@@ -26,3 +29,4 @@ elements:
   
   - type: Submit
     name: submit
+

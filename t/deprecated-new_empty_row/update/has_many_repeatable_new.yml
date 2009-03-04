@@ -12,7 +12,7 @@ elements:
     nested_name: addresses
     counter_name: count
     model_config:
-      empty_rows: 2
+      new_empty_row: address
     
     elements:
       - type: Hidden
@@ -26,3 +26,4 @@ elements:
   
   - type: Submit
     name: submit
+

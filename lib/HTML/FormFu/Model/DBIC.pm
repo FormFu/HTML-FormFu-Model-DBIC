@@ -4,6 +4,7 @@ use warnings;
 use base 'HTML::FormFu::Model';
 
 use HTML::FormFu::Util qw( _merge_hashes );
+use List::MoreUtils qw( none notall );
 use Scalar::Util qw( blessed );
 use Storable qw( dclone );
 use Carp qw( croak );
@@ -11,10 +12,8 @@ use Carp qw( croak );
 our $VERSION = '0.03007';
 $VERSION = eval $VERSION;
 
-# sub _compatible_config() is only required as long as we support the legacy
-# model_config->{DBIC} style and can be factored out when we remove support
-# test this works by reverting the test suite back `svn up -r 1020 t`
-# before running the tests
+# sub _compatible_config() is only required as long as we support deprecated
+# features and can be factored out when we remove support
 
 sub _compatible_config {
     my ($object) = @_;
@@ -26,6 +25,10 @@ sub _compatible_attrs {
     my ($config) = @_;
 
     return {} unless keys %$config;
+
+# legacy model_config->{DBIC} style
+# test this works by reverting the test suite back `svn up -r 1020 t`
+# before running the tests
 
     if ( exists $config->{DBIC} ) {
         warn
@@ -39,7 +42,17 @@ sub _compatible_attrs {
         return _merge_hashes( $config, $dbic );
     }
 
-    $config->{new_empty_row} ||= $config->{new_empty_row_multi};
+    if ( exists $config->{new_empty_row} ) {
+        warn "'new_empty_row' is deprecated and is provided for compatibility only,\n"
+             . "and will be removed: see the documentation for 'empty_rows' instead.";
+    }
+    
+    if ( exists $config->{new_empty_row_multi} ) {
+        warn "'new_empty_row_multi' is deprecated and is provided for compatibility only,\n"
+            . "and will be removed: see the documentation for 'empty_rows' instead.";
+        
+        $config->{new_empty_row} ||= $config->{new_empty_row_multi};
+    }
 
     return $config;
 }
@@ -280,10 +293,10 @@ sub _fill_nested {
                 } @{ $block->get_fields( { type => 'Hidden' } ) };
 
             my @rows = $dbic->$rel->all;
-            my $count
-                = $config->{new_empty_row}
-                ? scalar @rows + 1
-                : scalar @rows;
+            
+            my $count = $config->{empty_rows}    ? scalar @rows + $config->{empty_rows}
+                      : $config->{new_empty_row} ? scalar @rows + 1
+                      :                            scalar @rows;
 
             my $blocks = $block->repeat($count);
 
@@ -303,15 +316,24 @@ sub _fill_nested {
 
             # remove 'delete' checkbox from the last repetition ?
 
-            if ( $config->{new_empty_row} ) {
-                my $last_rep = $block->get_elements->[-1];
-
-                my ($del_field)
-                    = grep { _compatible_config($_)->{delete_if_true} }
-                    @{ $last_rep->get_fields };
-
-                if ( defined $del_field ) {
-                    $last_rep->remove_element($del_field);
+            if ( $config->{empty_rows} || $config->{new_empty_row} ) {
+                
+                my $new_row_count = $config->{empty_rows} ? $config->{empty_rows}
+                                  : 1;
+                
+                my @reps = reverse @{ $block->get_elements };
+                
+                for my $i ( 0 .. ($new_row_count-1) ) {
+                    
+                    my $rep = $reps[$i];
+                    
+                    my ($del_field)
+                        = grep { _compatible_config($_)->{delete_if_true} }
+                        @{ $rep->get_fields };
+                    
+                    if ( defined $del_field ) {
+                        $rep->remove_element($del_field);
+                    }
                 }
             }
         }
@@ -473,6 +495,9 @@ sub _save_has_many {
     my $max    = $#blocks;
     my $config = _compatible_config($block);
 
+    my $new_rows_max     = $config->{new_rows_max} || $config->{empty_rows} || 0;
+    my $new_rows_counter = 0;
+
     # iterate over blocks, not rows
     # new rows might have been created in the meantime
 
@@ -491,12 +516,21 @@ sub _save_has_many {
         my $row;
 
         if (   ( !defined $value || $value eq '' )
-            && ( $i == $max || $config->{new_empty_row_multi} )
-            && $config->{new_empty_row} )
+            && (
+                ( # either new behaviour
+                    $new_rows_max
+                    && ( ++$new_rows_counter <= $new_rows_max )
+                )
+                ||
+                ( # or deprecated behaviour
+                    $config->{new_empty_row} )
+                    && ( $i == $max || $config->{new_empty_row_multi} )
+                )
+            )
         {
 
             # insert a new row
-            $row = _insert_has_many( $dbic, $form, $block, $rep, $rel );
+            $row = _insert_has_many( $dbic, $form, $config, $rep, $rel, $pk_field );
 
             next if !defined $row;
         }
@@ -523,29 +557,84 @@ sub _save_has_many {
 }
 
 sub _insert_has_many {
-    my ( $dbic, $form, $outer, $repetition, $rel ) = @_;
+    my ( $dbic, $form, $config, $repetition, $rel, $pk_field ) = @_;
 
-    my $config = _compatible_config($outer);
-    my $rows = defined $config->{new_empty_row} ? $config->{new_empty_row} : [];
-
-    $rows = [$rows] if ref $rows ne 'ARRAY';
-
-    for my $name (@$rows) {
-        my ($field)
-            = grep { $_->original_name eq $name } @{ $repetition->get_fields };
-
-        return if !defined $field;
-
-        my $nested_name = $field->nested_name;
-        return if !$form->valid($nested_name);
-
-        my $value = $form->param_value($nested_name);
-        return if !length $value;
-    }
+    return if ! _can_insert_new_row( $dbic, $form, $config, $repetition, $rel, $pk_field );
 
     my $row = $dbic->new_related( $rel, {} );
 
     return $row;
+}
+
+sub _can_insert_new_row {
+    my ( $dbic, $form, $config, $repetition, $rel, $pk_field ) = @_;
+    
+    if ( $config->{new_empty_row} ) {
+        # old, deprecated behaviour
+        
+        my $rows = $config->{new_empty_row};
+    
+        $rows = [$rows] if ref $rows ne 'ARRAY';
+    
+        for my $name (@$rows) {
+            my ($field)
+                = grep { $_->original_name eq $name } @{ $repetition->get_fields };
+    
+            return if !defined $field;
+    
+            my $nested_name = $field->nested_name;
+            return if !$form->valid($nested_name);
+    
+            my $value = $form->param_value($nested_name);
+            return if !length $value;
+        }
+    }
+    else {
+        # new behaviour
+        
+        my @rep_fields = @{ $repetition->get_fields };
+        
+        my $pk_name = $pk_field->nested_name;
+        
+        my @constraints = grep { $_->when->{field} eq $pk_name }
+                          grep { defined $_->when }
+                          map { @{ $_->get_constraints({ type => 'Required' }) } }
+                            @rep_fields;
+        
+        my @required_fields;
+        
+        if ( @constraints ) {
+            # if there are any Required constraints whose 'when' clause points to
+            # the PK field - check that all these fields are filled in - as
+            # the PK value is missing on new reps, so the constraint won't have run
+            
+            return if
+                notall { defined && length }
+                map { $form->param_value( $_->nested_name ) }
+                map { $_->parent }
+                  @constraints;
+        }
+        else {
+            # otherwise, just check at least 1 field that matches either a column
+            # name or an accessor, is filled in
+            
+            my $result_source = $dbic->$rel->result_source;
+            
+            #  only create a new record if (read from bottom)...
+            
+            return if
+                none { defined && length }
+                map { $form->param_value( $_->nested_name ) }
+                grep {
+                    $result_source->has_column( $_->original_name )
+                    || $result_source->can( $_->original_name )
+                }
+                grep { defined $_->original_name }
+                    @rep_fields;
+        }
+    }
+    
+    return 1;
 }
 
 sub _delete_has_many {
@@ -657,7 +746,7 @@ sub _save_columns {
         }
     }
 
-# for values inserted by add_valid - and not correlated to any field in the form
+    # for values inserted by add_valid - and not correlated to any field in the form
     my $parent = $base;
     do {
         return 1 if defined $parent->nested_name;
@@ -667,9 +756,11 @@ sub _save_columns {
     for my $valid ( $form->valid ) {
         next if @{ $base->get_fields( name => $valid ) };
         next if not $dbic->can($valid);
+        
         my $value = $form->param_value($valid);
         $dbic->$valid($value);
     }
+    
     return 1;
 }
 
@@ -761,14 +852,27 @@ sub _save_repeatable_many_to_many {
                 my $row;
                 my $is_new;
 
+                my $config           = _compatible_config($block);
+                my $new_rows_max     = $config->{new_rows_max} || $config->{empty_rows} || 0;
+                my $new_rows_counter = 0;
+
                 if (   ( !defined $value || $value eq '' )
-                    && $i == $max
-                    && _compatible_config($block)->{new_empty_row} )
+                    && (
+                        ( # either new behaviour
+                            $new_rows_max
+                            && ( ++$new_rows_counter <= $new_rows_max )
+                        )
+                        ||
+                        ( # or deprecated behaviour
+                            $config->{new_empty_row} )
+                            && $i == $max
+                        )
+                    )
                 {
 
                     # insert a new row
-                    $row = _insert_many_to_many( $dbic, $form, $block, $rep,
-                        $rel );
+                    $row = _insert_many_to_many( $dbic, $form, $config, $rep,
+                        $rel, $pk_field );
 
                     next if !defined $row;
 
@@ -808,24 +912,9 @@ sub _save_repeatable_many_to_many {
 }
 
 sub _insert_many_to_many {
-    my ( $dbic, $form, $outer, $repetition, $rel ) = @_;
+    my ( $dbic, $form, $config, $repetition, $rel, $pk_field ) = @_;
 
-    my $rows = _compatible_config($outer)->{new_empty_row};
-
-    $rows = [$rows] if ref $rows ne 'ARRAY';
-
-    for my $name (@$rows) {
-        my ($field)
-            = grep { $_->original_name eq $name } @{ $repetition->get_fields };
-
-        return if !defined $field;
-
-        my $nested_name = $field->nested_name;
-        return if !$form->valid($nested_name);
-
-        my $value = $form->param_value($nested_name);
-        return if !length $value;
-    }
+    return if ! _can_insert_new_row( $dbic, $form, $config, $repetition, $rel, $pk_field );
 
     my $row = $dbic->$rel->new( {} );
 
@@ -871,24 +960,46 @@ form's L<stash|HTML::FormFu/stash>, by setting this in your application
 config (C<MyApp.pm>), where C<ModelName> is the name of your model that will
 be passed to C<< $c->model($name) >>.
 
+Example in L<Config::General> format:
+
     <Controller::HTML::FormFu>
         <model_stash>
             schema ModelName
         </model_stash>
     </Controller::HTML::FormFu>
 
-Set a forms' default values from a DBIx::Class row object:
+Example in L<YAML> format:
 
-    my $row = $resultset->find( $id );
-    
-    $form->model->default_values( $row );
+    'Controller::HTML::FormFu':
+        model_stash:
+            schema: ModelName
 
-Update the database from a submitted form:
+Example of typical use in a Catalyst controller:
 
-    if ( $form->submitted_and_valid ) {
-        my $row = $resultset->find( $form->param('id') );
+    sub edit : Chained : Args(1) {
+        my ( $self, $c, $id ) = @_;
         
-        $form->model->update( $row );
+        my $form = $c->stash->{form};
+        my $row  = $resultset->find( $id );
+        
+        if ( $form->submitted_and_valid ) {
+            
+            # update dbic row with submitted values from form
+            
+            $form->model->update( $row );
+            
+            $c->response->redirect( $c->uri_for('view', $id) );
+            return;
+        }
+        elsif ( !$form->submitted ) {
+            
+            # form not submitted
+            # use dbic row to set form's default values
+            
+            $form->model->default_values( $row );
+        }
+        
+        return;
     }
 
 =head1 METHODS
@@ -901,10 +1012,90 @@ Return Value: $form
 
     $form->model->default_values( $row );
 
-Set a form's default values from a DBIx::Class row.
+Set a form's default values from a C<DBIx::Class> row.
 
 Any form fields with a name matching a column name will have their default
 value set with the column value.
+
+=head3 Configuration
+
+=head4 Method arguments
+
+The following items are supported in the optional C<config> hash-ref argument
+to C<default_values>.
+
+=over
+
+=item base
+
+If you want C<< default_values() >> to be called on a particular Block element,
+rather than the whole form, you can pass the element as a C<base> argument.
+
+    $form->default_values(
+        $row,
+        {
+            base => $formfu_element,
+        },
+    );
+
+=item nested_base
+
+If you want C<< default_values() >> to be called on a particular Block element
+by L<name|HTML::FormFu::Element/name>, you can pass the name as an argument.
+
+    $form->default_values(
+        $row,
+        {
+            nested_base => 'foo',
+        }'
+    );
+
+=back
+
+=head4 Config options for fields
+
+The following items are supported as C<model_config> options on form fields.
+
+=over
+
+=item accessor
+
+If set, C<accessor> will be used as a method-name accessor on the
+C<DBIx::Class> row object, instead of using the field name.
+
+=item default_column
+
+To set the default value for a multi-value field (such as one populated by
+L<options_from_model>), using a column other than the primary key, use
+C<default_column>.
+
+=item delete_if_true
+
+Intended for use on a C<Checkbox> field attached to a C<Repeatable> block
+corresponding to a has-many or many-to-many relationship. If the checkbox
+is checked, the following occurs: for a has-many relationship, the related
+row is deleted; for a many-to-many relationship, the relationship link is
+removed.
+
+=item label
+
+To use a column value for a form field's
+L<label|HTML::FormFu::Element::_Field/label>.
+
+=back
+
+=head4 Config options for Repeatable blocks
+
+=over
+
+=item empty_rows
+
+For a Repeatable block corresponding to a has-many or many-to-many
+relationship, to allow the user to insert new rows, set C<empty_rows> to
+the number of extra repetitions you wish added to the end of the Repeatable
+block.
+
+=back
 
 =head3 might_have and has_one relationships
 
@@ -912,14 +1103,13 @@ Set field values from a related row with a C<might_have> or C<has_one>
 relationship by placing the fields within a 
 L<Block|HTML::FormFu::Element::Block> (or any element that inherits from 
 Block, such as L<Fieldset|HTML::FormFu::Element::Fieldset>) with its
-L<HTML::FormFu/nested_name> set to the relationships name.
+L<HTML::FormFu/nested_name> set to the relationship name.
 
 For the following DBIx::Class schemas:
 
     package MySchema::Book;
     use strict;
     use warnings;
-    
     use base 'DBIx::Class';
     
     __PACKAGE__->load_components(qw/ Core /);
@@ -941,7 +1131,6 @@ For the following DBIx::Class schemas:
     package MySchema::Review;
     use strict;
     use warnings;
-    
     use base 'DBIx::Class';
     
     __PACKAGE__->load_components(qw/ Core /);
@@ -949,8 +1138,8 @@ For the following DBIx::Class schemas:
     __PACKAGE__->table("review");
     
     __PACKAGE__->add_columns(
-        book   => { data_type => "INTEGER" },
-        review => { data_type => "TEXT" },
+        book        => { data_type => "INTEGER" },
+        review_text => { data_type => "TEXT" },
     );
     
     __PACKAGE__->set_primary_key("book");
@@ -970,9 +1159,10 @@ A suitable form for this would be:
         name: title
       
       - type: Block
+        nested_name: review
         elements:
-          - type: Text
-            name: review
+          - type: Textarea
+            name: review_text
 
 For C<might_have> and C<has_one> relationships, you generally shouldn't need
 to have a field for the related table's primary key, as DBIx::Class will
@@ -1007,52 +1197,52 @@ L<HTML::FormFu::Element::Repeatable/increment_field_names> must be true
 The block's L<nested_name|HTML::FormFu::Element::Repeatable/nested_name>
 must be set to the name of the relationship.
 
-If you want an extra, empty, copy of the block to be output, to allow the
-user to add a new row of data, set 
-C<< $block->model_config->{new_empty_row} >>. The value must be a
-column name, or arrayref of column names that must be filled in for the row
-to be added.
-
-    ---
-    element:
-      - type: Repeatable
-        nested_name: authors
-        model_config:
-          new_empty_row: author
-        
-        elements:
-          - type: Hidden
-            name: id
-          
-          - type: Text
-            name: author
-
-If you want to add more than one new row you can use
-C<< $block->model_config->{new_empty_row_multi} >> instead of
-C<< $block->model_config->{new_empty_row} >>. To limit the maximum number of new 
-rows put a L<range|HTML::FormFu::Constraint::Range> constraint on the
-C<count> field.
-
-    ---
-    element:
-      - type: Repeatable
-        nested_name: authors
-        model_config:
-          new_empty_row_multi: author
-        
-        elements:
-          - type: Hidden
-            name: id
-          
-          - type: Text
-            name: author
-            
-      - type: Hidden
-        name: count
-        constraints: 
-          - type: Range
-            max: 3
-        
+    XXX If you want an extra, empty, copy of the block to be output, to allow the
+    XXX user to add a new row of data, set 
+    XXX C<< $block->model_config->{new_empty_row} >>. The value must be a
+    XXX column name, or arrayref of column names that must be filled in for the row
+    XXX to be added.
+    XXX 
+    XXX     ---
+    XXX     element:
+    XXX       - type: Repeatable
+    XXX         nested_name: authors
+    XXX         model_config:
+    XXX           new_empty_row: author
+    XXX         
+    XXX         elements:
+    XXX           - type: Hidden
+    XXX             name: id
+    XXX           
+    XXX           - type: Text
+    XXX             name: author
+    XXX 
+    XXX If you want to add more than one new row you can use
+    XXX C<< $block->model_config->{new_empty_row_multi} >> instead of
+    XXX C<< $block->model_config->{new_empty_row} >>. To limit the maximum number of new 
+    XXX rows put a L<range|HTML::FormFu::Constraint::Range> constraint on the
+    XXX C<count> field.
+    XXX 
+    XXX     ---
+    XXX     element:
+    XXX       - type: Repeatable
+    XXX         nested_name: authors
+    XXX         model_config:
+    XXX           new_empty_row_multi: author
+    XXX         
+    XXX         elements:
+    XXX           - type: Hidden
+    XXX             name: id
+    XXX           
+    XXX           - type: Text
+    XXX             name: author
+    XXX             
+    XXX       - type: Hidden
+    XXX         name: count
+    XXX         constraints: 
+    XXX           - type: Range
+    XXX             max: 3
+    XXX         
 
 If you want to provide a L<Checkbox|HTML::FormFu::Element::Checkbox> or
 similar field, to allow the user to select whether given rows should be 
@@ -1251,6 +1441,32 @@ You can make a field read only. The value of such fields cannot be changed by th
       read_only: 1
 
 See L<HTML::FormFu::Element::Label>.
+
+=head1 DEPRECATED
+
+=head2 new_empty_row
+
+Is deprecated and provided only for backwards compatability.
+Will be removed at some point in the future.
+
+See C<empty_rows> in L</"Config options for Repeatable blocks"> instead.
+
+=head2 new_empty_row_multi
+
+Is deprecated and provided only for backwards compatability.
+Will be removed at some point in the future.
+
+See C<empty_rows> in L</"Config options for Repeatable blocks"> instead.
+
+=head2 Range constraint
+
+The suggestion to use a C<Range> constraint on the C<count> field to limit
+the number of repetitions of a Repeatable block, has been withdrawn.
+
+This was only useful in the case that there were no initial rows to be edited,
+otherwise the C<max()> value could not be known ahead of time.
+
+See C<empty_rows> in L</"Config options for Repeatable blocks"> instead.
 
 =head1 CAVEATS
 

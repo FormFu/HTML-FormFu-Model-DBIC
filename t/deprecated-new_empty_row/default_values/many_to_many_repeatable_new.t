@@ -12,7 +12,7 @@ new_db();
 my $form = HTML::FormFu->new;
 
 $form->load_config_file(
-    't/default_values/many_to_many_repeatable_new.yml');
+    't/deprecated-new_empty_row/default_values/many_to_many_repeatable_new.yml');
 
 my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
 
@@ -26,7 +26,9 @@ my $master = $schema->resultset('Master')->create({ id => 1 });
     $user->add_to_bands( { band => 'a', } );
 
     $master->create_related( 'user', { name => 'filler2', } );
+
     $master->create_related( 'user', { name => 'filler3', } );
+
     $master->create_related( 'user', { name => 'filler4', } );
 }
 
@@ -36,7 +38,9 @@ my $master = $schema->resultset('Master')->create({ id => 1 });
     my $user = $master->create_related( 'user', { name => 'nick', } );
 
     $user->add_to_bands( { band => 'b', } );
+
     $user->add_to_bands( { band => 'c', } );
+
     $user->add_to_bands( { band => 'd', } );
 }
 

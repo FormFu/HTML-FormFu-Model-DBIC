@@ -11,7 +11,7 @@ new_db();
 
 my $form = HTML::FormFu->new;
 
-$form->load_config_file('t/default_values/nested_base_accessor.yml');
+$form->load_config_file('t/default_values/nested_name_accessor.yml');
 
 my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
 

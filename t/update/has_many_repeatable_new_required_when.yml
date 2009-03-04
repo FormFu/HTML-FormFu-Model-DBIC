@@ -20,9 +20,14 @@ elements:
       
       - type: Text
         name: address
+        constraints:
+            - type: Required
+              when:
+                field: 'addresses.id'
   
   - type: Hidden
     name: count
   
   - type: Submit
     name: submit
+

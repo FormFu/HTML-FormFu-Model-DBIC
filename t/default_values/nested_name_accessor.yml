@@ -4,8 +4,6 @@ elements:
   
   - type: Block
     nested_name: foo
-    model_config:
-      nested_base: foo
     
     elements:
       - name: value

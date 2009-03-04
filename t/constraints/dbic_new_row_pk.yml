@@ -17,12 +17,26 @@ elements:
     elements:
       - type: Hidden
         name: id
+        plugins:
+            - 'DBIC::NewRowPK'
       
       - type: Text
         name: address
+        constraints:
+            - type: Required
+              when:
+                field: 'addresses.id'
+      
+      - type: Text
+        name: my_label
+        constraints:
+            - type: Required
+              when:
+                field: 'addresses.id'
   
   - type: Hidden
     name: count
   
   - type: Submit
     name: submit
+

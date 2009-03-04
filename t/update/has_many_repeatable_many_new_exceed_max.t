@@ -28,6 +28,8 @@ my $address_rs = $schema->resultset('Address');
 			'addresses.address_1' => 'new home',
 			'addresses.id_2'      => '',
 			'addresses.address_2' => 'new office',
+            'addresses.id_3'      => '',
+			'addresses.address_3' => 'new office2',
 		}
 	);
     
@@ -43,6 +45,8 @@ my $address_rs = $schema->resultset('Address');
 	
     my @add = $user->addresses->all;
 	
+    # 3rd address isn't inserted
+    
     is( scalar @add,      2 );
 	
     is( $add[0]->id,      1 );
