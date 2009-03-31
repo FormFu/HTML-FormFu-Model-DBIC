@@ -706,6 +706,8 @@ sub _save_columns {
         next if not defined $accessor;
         
         my $value = $form->param_value( $field->nested_name );
+        
+        next if $config->{ignore_if_empty} && ( !defined $value || $value eq "" );
 
         my ($pk) = $dbic->result_source->primary_columns;
 
