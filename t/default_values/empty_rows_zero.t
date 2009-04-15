@@ -29,8 +29,7 @@ $master->create_related( 'user', { name => 'filler3', } );
 # row we're going to use
 
 $master->create_related( 'user', {
-        name      => 'nick',
-        addresses => [ { address => 'home', }, { address => 'office', } ] } );
+        name      => 'nick' } );
 
 {
     my $row = $schema->resultset('User')->find(4);
@@ -38,17 +37,12 @@ $master->create_related( 'user', {
     $form->model->default_values($row);
 
     is( $form->get_field('id')->default,    '4' );
-    is( $form->get_field('count')->default, '2' );
-
+    is( $form->get_field('count')->default, '0' );
+    
     my $block = $form->get_all_element( { nested_name => 'addresses' } );
 
     my @reps = @{ $block->get_elements };
 
-    is( scalar @reps, 2 );
+    is( scalar @reps, 0 );
 
-    is( $reps[0]->get_field('id_1')->default,      '2' );
-    is( $reps[0]->get_field('address_1')->default, 'home' );
-
-    is( $reps[1]->get_field('id_2')->default,      '3' );
-    is( $reps[1]->get_field('address_2')->default, 'office' );
 }
