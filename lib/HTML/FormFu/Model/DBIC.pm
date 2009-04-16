@@ -301,8 +301,6 @@ sub _fill_nested {
 
             my $blocks = $block->repeat($count);
             
-            $block->process;
-
             for my $rep ( 0 .. $#rows ) {
                 default_values( $self, $rows[$rep],
                     { base => $blocks->[$rep] } );
