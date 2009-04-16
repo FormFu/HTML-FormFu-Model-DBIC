@@ -300,6 +300,8 @@ sub _fill_nested {
                       :                            scalar @rows;
 
             my $blocks = $block->repeat($count);
+            
+            $block->process;
 
             for my $rep ( 0 .. $#rows ) {
                 default_values( $self, $rows[$rep],

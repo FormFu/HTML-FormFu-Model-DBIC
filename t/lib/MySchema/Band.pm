@@ -9,11 +9,14 @@ __PACKAGE__->load_components(qw/ Core /);
 __PACKAGE__->table("band");
 
 __PACKAGE__->add_columns(
-    id   => { data_type => "INTEGER", is_nullable => 0 },
-    band => { data_type => "TEXT", is_nullable => 0 },
+    id      => { data_type => "INTEGER", is_nullable => 0 },
+    manager => { data_type => "INTEGER" },
+    band    => { data_type => "TEXT", is_nullable => 0 },
 );
 
 __PACKAGE__->set_primary_key("id");
+
+__PACKAGE__->belongs_to( manager => 'MySchema::Manager', 'id' );
 
 __PACKAGE__->has_many( user_bands => 'MySchema::UserBand', 'band' );
 

@@ -14,6 +14,21 @@ END {
     }
 }
 
+sub output_html {
+    my ($form) = @_;
+    
+    open my $fh, '>', 'out.html'
+        or die $!;
+    
+    print $fh <<HTML;
+<html>
+<body>
+$form
+</body>
+</html>
+HTML
+}
+
 sub new_db {
     
     if ( -f 't/test.db' ) {
@@ -71,6 +86,7 @@ SQL
     $dbh->do( <<SQL );
 CREATE TABLE band (
   id   INTEGER PRIMARY KEY NOT NULL,
+  manager INTEGER,
   band TEXT NOT NULL
 );
 
@@ -138,6 +154,14 @@ CREATE TABLE schedule (
   master INTEGER NOT NULL,
   date   DATETIME NOT NULL,
   note   TEXT NOT NULL
+);
+
+SQL
+
+    $dbh->do( <<SQL );
+CREATE TABLE manager (
+  id   INTEGER PRIMARY KEY NOT NULL,
+  name TEXT NOT NULL
 );
 
 SQL
