@@ -286,6 +286,7 @@ sub _fill_nested {
 
             # check there's a field name matching the PK
             my ($pk) = $dbic->$rel->result_source->primary_columns;
+
             next
                 unless grep {
                 $pk eq
@@ -308,7 +309,10 @@ sub _fill_nested {
             # set the counter field to the number of rows
 
             if ( defined( my $param_name = $block->counter_name ) ) {
-                my $field = $base->get_field($param_name);
+                my ($field) = grep {
+                    $param_name eq
+                        ( defined $_->original_name ? $_->original_name : $_->name )
+                } @{ $base->get_fields };
 
                 $field->default($count)
                     if defined $field;
