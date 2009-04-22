@@ -33,7 +33,7 @@ sub _compatible_attrs {
     if ( exists $config->{DBIC} ) {
         warn
             "model_config->{DBIC}{} is deprecated and is provided for compatibilty only\n"
-            . "and will be removed: use model_config->{} instead";
+            . "and will be removed: use model_config->{} instead.";
 
         $config = dclone($config);
 
@@ -963,52 +963,55 @@ HTML::FormFu::Model::DBIC - Integrate HTML::FormFu with DBIx::Class
 
 =head1 SYNOPSIS
 
-If using L<Catalyst>, ensure your L<DBIx::Class> schema is placed in the
-form's L<stash|HTML::FormFu/stash>, by setting this in your application
-config (C<MyApp.pm>), where C<ModelName> is the name of your model that will
-be passed to C<< $c->model($name) >>.
-
-Example in L<Config::General> format:
-
-    <Controller::HTML::FormFu>
-        <model_stash>
-            schema ModelName
-        </model_stash>
-    </Controller::HTML::FormFu>
-
-Example in L<YAML> format:
-
-    'Controller::HTML::FormFu':
-        model_stash:
-            schema: ModelName
-
 Example of typical use in a Catalyst controller:
 
-    sub edit : Chained : Args(1) {
-        my ( $self, $c, $id ) = @_;
+    sub edit : Chained {
+        my ( $self, $c ) = @_;
         
         my $form = $c->stash->{form};
-        my $row  = $resultset->find( $id );
+        my $book = $c->stash->{book};
         
         if ( $form->submitted_and_valid ) {
             
             # update dbic row with submitted values from form
             
-            $form->model->update( $row );
+            $form->model->update( $book );
             
-            $c->response->redirect( $c->uri_for('view', $id) );
+            $c->response->redirect( $c->uri_for('view', $book->id) );
             return;
         }
         elsif ( !$form->submitted ) {
             
-            # form not submitted
             # use dbic row to set form's default values
             
-            $form->model->default_values( $row );
+            $form->model->default_values( $book );
         }
         
         return;
     }
+
+=head1 SETUP
+
+For the form object to be able to access your L<DBIx::Class> schema, it needs
+to be placed on the form stash, with the name C<schema>.
+
+This is easy if you're using L<Catalyst-Controller-HTML-FormFu>, as you can
+set this up to happen in your Catalyst app's config file.
+
+For example, if your model is named C<MyApp::Model::Corp>, you would set this
+(in L<Config::General> format):
+
+    <Controller::HTML::FormFu>
+        <model_stash>
+            schema Corp
+        </model_stash>
+    </Controller::HTML::FormFu>
+
+Or if your app's config file is in L<YAML> format:
+
+    'Controller::HTML::FormFu':
+        model_stash:
+            schema: Corp
 
 =head1 METHODS
 
@@ -1020,296 +1023,7 @@ Return Value: $form
 
     $form->model->default_values( $row );
 
-Set a form's default values from a C<DBIx::Class> row.
-
-Any form fields with a name matching a column name will have their default
-value set with the column value.
-
-=head3 Configuration
-
-=head4 Method arguments
-
-The following items are supported in the optional C<config> hash-ref argument
-to C<default_values>.
-
-=over
-
-=item base
-
-If you want C<< default_values() >> to be called on a particular Block element,
-rather than the whole form, you can pass the element as a C<base> argument.
-
-    $form->default_values(
-        $row,
-        {
-            base => $formfu_element,
-        },
-    );
-
-=item nested_base
-
-If you want C<< default_values() >> to be called on a particular Block element
-by L<name|HTML::FormFu::Element/name>, you can pass the name as an argument.
-
-    $form->default_values(
-        $row,
-        {
-            nested_base => 'foo',
-        }'
-    );
-
-=back
-
-=head4 Config options for fields
-
-The following items are supported as C<model_config> options on form fields.
-
-=over
-
-=item accessor
-
-If set, C<accessor> will be used as a method-name accessor on the
-C<DBIx::Class> row object, instead of using the field name.
-
-=item default_column
-
-To set the default value for a multi-value field (such as one populated by
-L<options_from_model>), using a column other than the primary key, use
-C<default_column>.
-
-=item delete_if_true
-
-Intended for use on a C<Checkbox> field attached to a C<Repeatable> block
-corresponding to a has-many or many-to-many relationship. If the checkbox
-is checked, the following occurs: for a has-many relationship, the related
-row is deleted; for a many-to-many relationship, the relationship link is
-removed.
-
-=item label
-
-To use a column value for a form field's
-L<label|HTML::FormFu::Element::_Field/label>.
-
-=back
-
-=head4 Config options for Repeatable blocks
-
-=over
-
-=item empty_rows
-
-For a Repeatable block corresponding to a has-many or many-to-many
-relationship, to allow the user to insert new rows, set C<empty_rows> to
-the number of extra repetitions you wish added to the end of the Repeatable
-block.
-
-=back
-
-=head3 might_have and has_one relationships
-
-Set field values from a related row with a C<might_have> or C<has_one> 
-relationship by placing the fields within a 
-L<Block|HTML::FormFu::Element::Block> (or any element that inherits from 
-Block, such as L<Fieldset|HTML::FormFu::Element::Fieldset>) with its
-L<HTML::FormFu/nested_name> set to the relationship name.
-
-For the following DBIx::Class schemas:
-
-    package MySchema::Book;
-    use strict;
-    use warnings;
-    use base 'DBIx::Class';
-    
-    __PACKAGE__->load_components(qw/ Core /);
-    
-    __PACKAGE__->table("book");
-    
-    __PACKAGE__->add_columns(
-        id    => { data_type => "INTEGER" },
-        title => { data_type => "TEXT" },
-    );
-    
-    __PACKAGE__->set_primary_key("id");
-    
-    __PACKAGE__->might_have( review => 'MySchema::Review', 'book' );
-    
-    1;
-
-
-    package MySchema::Review;
-    use strict;
-    use warnings;
-    use base 'DBIx::Class';
-    
-    __PACKAGE__->load_components(qw/ Core /);
-    
-    __PACKAGE__->table("review");
-    
-    __PACKAGE__->add_columns(
-        book        => { data_type => "INTEGER" },
-        review_text => { data_type => "TEXT" },
-    );
-    
-    __PACKAGE__->set_primary_key("book");
-    
-    __PACKAGE__->belongs_to( book => 'MySchema::Book' );
-    
-    1;
-
-
-A suitable form for this would be:
-
-    elements:
-      - type: Hidden
-        name: id
-      
-      - type: Text
-        name: title
-      
-      - type: Block
-        nested_name: review
-        elements:
-          - type: Textarea
-            name: review_text
-
-For C<might_have> and C<has_one> relationships, you generally shouldn't need
-to have a field for the related table's primary key, as DBIx::Class will
-handle retrieving the correct row automatically.
-
-If you want the related row deleted if a particular field is empty, set
-set C<< $field->model_config->{delete_if_empty} >> to true. 
-
-    elements:
-      - type: Hidden
-        name: id
-      
-      - type: Text
-        name: title
-      
-      - type: Block
-        elements:
-          - type: Text
-            name: review
-            model_config:
-              delete_if_empty: 1
-
-=head3 has_many and many_to_many relationships
-
-To edit fields in related rows with C<has_many> and C<many_to_many>
-relationships, the fields must be placed within a 
-L<Repeatable|HTML::FormFu::Element::Repeatable> element.
-This will output a repetition of the entire block for each row returned.
-L<HTML::FormFu::Element::Repeatable/increment_field_names> must be true
-(which is the default value).
-
-The block's L<nested_name|HTML::FormFu::Element::Repeatable/nested_name>
-must be set to the name of the relationship.
-
-    XXX If you want an extra, empty, copy of the block to be output, to allow the
-    XXX user to add a new row of data, set 
-    XXX C<< $block->model_config->{new_empty_row} >>. The value must be a
-    XXX column name, or arrayref of column names that must be filled in for the row
-    XXX to be added.
-    XXX 
-    XXX     ---
-    XXX     element:
-    XXX       - type: Repeatable
-    XXX         nested_name: authors
-    XXX         model_config:
-    XXX           new_empty_row: author
-    XXX         
-    XXX         elements:
-    XXX           - type: Hidden
-    XXX             name: id
-    XXX           
-    XXX           - type: Text
-    XXX             name: author
-    XXX 
-    XXX If you want to add more than one new row you can use
-    XXX C<< $block->model_config->{new_empty_row_multi} >> instead of
-    XXX C<< $block->model_config->{new_empty_row} >>. To limit the maximum number of new 
-    XXX rows put a L<range|HTML::FormFu::Constraint::Range> constraint on the
-    XXX C<count> field.
-    XXX 
-    XXX     ---
-    XXX     element:
-    XXX       - type: Repeatable
-    XXX         nested_name: authors
-    XXX         model_config:
-    XXX           new_empty_row_multi: author
-    XXX         
-    XXX         elements:
-    XXX           - type: Hidden
-    XXX             name: id
-    XXX           
-    XXX           - type: Text
-    XXX             name: author
-    XXX             
-    XXX       - type: Hidden
-    XXX         name: count
-    XXX         constraints: 
-    XXX           - type: Range
-    XXX             max: 3
-    XXX         
-
-If you want to provide a L<Checkbox|HTML::FormFu::Element::Checkbox> or
-similar field, to allow the user to select whether given rows should be 
-deleted (or, in the case of C<many_to_many> relationships, unrelated),
-set C<< $block->model_config->{delete_if_true} >> to the name of that
-field.  Make sure the name of this field does not clash with one of
-your L<DBIx::Class::Row> object method names (especially delete).
-
-    ---
-    element:
-      - type: Repeatable
-        nested_name: authors
-        model_config:
-          delete_if_true: deletion_marker
-        
-        elements:
-          - type: Hidden
-            name: id
-          
-          - type: Text
-            name: author
-          
-          - type: Checkbox
-            name: deletion_marker
-
-=head3 many_to_many selection
-
-To select / deselect rows from a C<many_to_many> relationship, you must use
-a multi-valued element, such as a 
-L<Checkboxgroup|HTML::FormFu::Element::Checkboxgroup> or a
-L<Select|HTML::FormFu::Element::Select> with 
-L<multiple|HTML::FormFu::Element::Select/multiple> set.
-
-The field's L<name|HTML::FormFu::Element::_Field/name> must be set to the 
-name of the C<many_to_many> relationship.
-
-If you want to search / associate the related table by a column other it's
-primary key, set C<< $field->model_config->{default_column} >>.
-
-    ---
-    element:
-        - type: Checkboxgroup
-          name: authors
-          model_config:
-            default_column: foo
-
-
-=head3 non-column accessors
-
-To make a form field correspond to a method in your DBIx::Class schema, that 
-isn't a database column or relationship, set
-C<< $field->model_config->{accessor} >>.
-
-    ---
-    element:
-      - type: Text
-        name: foo
-        model_config:
-          accessor: method_name
+Set a form's default values from the database, to allow a user to edit them.
 
 =head2 update
 
@@ -1319,11 +1033,7 @@ Return Value: $dbic_row
 
     $form->model->update( $row );
 
-Update the database with the submitted form values. Uses 
-L<update_or_insert|DBIx::Class::Row/update_or_insert>.
-
-See L</default_values> for specifics about what relationships are supported
-and how to structure your forms.
+Update the database with the submitted form values.
 
 =head2 create
 
@@ -1352,7 +1062,7 @@ An example of setting the ResultSet name on a Form:
 
 =head2 options_from_model
 
-Populates a multi-valued field, with values from the database.
+Populates a multi-valued field with values from the database.
 
 This method should not be called directly, but is called for you during
 C<< $form->process >> by fields that inherit from
@@ -1366,17 +1076,396 @@ L<HTML::FormFu::Element::_Group>. This includes:
 
 =item L<HTML::FormFu::Element::Radiogroup>
 
+=item L<HTML::FormFu::Element::ComboBox>
+
 =back
 
-To use, ensure the DBIC schema is available on the form stash - see
-L</SYNOPSIS> for an example config - and you must set the appropriate
-C<resultset> on the element C<model_config>:
+To use you must set the appropriate C<resultset> on the element C<model_config>:
 
     element:
       - type: Select
         name: foo
         model_config:
           resultset: TableClass
+
+=head1 BUILDING FORMS
+
+=head2 single table
+
+To edit the values in a row with no related rows, the field names simple have
+to correspond to the database column names.
+
+For the following DBIx::Class schema:
+
+    package MySchema::Book;
+    use base 'DBIx::Class';
+    
+    __PACKAGE__->load_components(qw/ Core /);
+    
+    __PACKAGE__->table("book");
+    
+    __PACKAGE__->add_columns(
+        id     => { data_type => "INTEGER" },
+        title  => { data_type => "TEXT" },
+        author => { data_type => "TEXT" },
+        blurb  => { data_type => "TEXT" },
+    );
+    
+    __PACKAGE__->set_primary_key("id");
+    
+    1;
+
+A suitable form for this might be:
+
+    elements:
+      - type: Text
+        name: title
+      
+      - type: Text
+        name: author
+      
+      - type: Textarea
+        name: blurb
+
+=head2 might_have and has_one relationships
+
+Set field values from a related row with a C<might_have> or C<has_one> 
+relationship by placing the fields within a 
+L<Block|HTML::FormFu::Element::Block> (or any element that inherits from 
+Block, such as L<Fieldset|HTML::FormFu::Element::Fieldset>) with its
+L<HTML::FormFu/nested_name> set to the relationship name.
+
+For the following DBIx::Class schemas:
+
+    package MySchema::Book;
+    use base 'DBIx::Class';
+    
+    __PACKAGE__->load_components(qw/ Core /);
+    
+    __PACKAGE__->table("book");
+    
+    __PACKAGE__->add_columns(
+        id    => { data_type => "INTEGER" },
+        title => { data_type => "TEXT" },
+    );
+    
+    __PACKAGE__->set_primary_key("id");
+    
+    __PACKAGE__->might_have( review => 'MySchema::Review', 'book' );
+    
+    1;
+
+
+    package MySchema::Review;
+    use base 'DBIx::Class';
+    
+    __PACKAGE__->load_components(qw/ Core /);
+    
+    __PACKAGE__->table("review");
+    
+    __PACKAGE__->add_columns(
+        book        => { data_type => "INTEGER" },
+        review_text => { data_type => "TEXT" },
+    );
+    
+    __PACKAGE__->set_primary_key("book");
+    
+    __PACKAGE__->belongs_to( book => 'MySchema::Book' );
+    
+    1;
+
+A suitable form for this would be:
+
+    elements:
+      - type: Text
+        name: title
+      
+      - type: Block
+        nested_name: review
+        elements:
+          - type: Textarea
+            name: review_text
+
+For C<might_have> and C<has_one> relationships, you generally shouldn't need
+to have a field for the related table's primary key, as DBIx::Class will
+handle retrieving the correct row automatically.
+
+=head2 has_many and many_to_many relationships
+
+The general principle is the same as for C<might_have> and C<has_one> above,
+except you should use a L<Repeatable|HTML::FormFu::Element::Repeatable>
+element instead of a Block, and it needs to contain a
+L<Hidden|HTML::FormFu::Element::Hidden> field corresponding to the foreign key.
+
+The Repeatable block's
+L<nested_name|HTML::FormFu::Element::Repeatable/nested_name> must be set to the
+name of the relationship.
+
+The Repeable block's
+L<increment_field_names|HTML::FormFu::Element::Repeatable/increment_field_names>
+must be true (which is the default value).
+
+The Repeable block's
+L<counter_name|HTML::FormFu::Element::Repeatable/counter_name> must be set to
+the name of a L<Hidden|HTML::FormFu::Element::Hidden> field, which is placed
+outside of the Repeatable block.
+This field is used to store a count of the number of repetitions of the
+Repeatable block were created.
+When the form is submitted, this value is used during C<< $form->process >>
+to ensure the form is rebuild with the correct number of repetitions.
+
+For the following DBIx::Class schemas:
+
+    package MySchema::Book;
+    use base 'DBIx::Class';
+    
+    __PACKAGE__->load_components(qw/ Core /);
+    
+    __PACKAGE__->table("book");
+    
+    __PACKAGE__->add_columns(
+        id    => { data_type => "INTEGER" },
+        title => { data_type => "TEXT" },
+    );
+    
+    __PACKAGE__->set_primary_key("id");
+    
+    __PACKAGE__->has_many( review => 'MySchema::Review', 'book' );
+    
+    1;
+
+
+    package MySchema::Review;
+    use base 'DBIx::Class';
+    
+    __PACKAGE__->load_components(qw/ Core /);
+    
+    __PACKAGE__->table("review");
+    
+    __PACKAGE__->add_columns(
+        book        => { data_type => "INTEGER" },
+        review_text => { data_type => "TEXT" },
+    );
+    
+    __PACKAGE__->set_primary_key("book");
+    
+    __PACKAGE__->belongs_to( book => 'MySchema::Book' );
+    
+    1;
+
+A suitable form for this would be:
+
+    elements:
+      - type: Text
+        name: title
+      
+      - type: Hidden
+        name: review_count
+      
+      - type: Repeatable
+        nested_name: review
+        counter_name: review_count
+        elements:
+          - type: Hidden
+            name: book
+          
+          - type: Textarea
+            name: review_text
+
+=head2 many_to_many selection
+
+To select / deselect rows from a C<many_to_many> relationship, you must use
+a multi-valued element, such as a 
+L<Checkboxgroup|HTML::FormFu::Element::Checkboxgroup> or a
+L<Select|HTML::FormFu::Element::Select> with 
+L<multiple|HTML::FormFu::Element::Select/multiple> set.
+
+The field's L<name|HTML::FormFu::Element::_Field/name> must be set to the 
+name of the C<many_to_many> relationship.
+
+=item default_column
+
+If you want to search / associate the related table by a column other it's
+primary key, set C<< $field->model_config->{default_column} >>.
+
+    ---
+    element:
+        - type: Checkboxgroup
+          name: authors
+          model_config:
+            default_column: foo
+
+
+=head1 COMMON ARGUMENTS
+
+The following items are supported in the optional C<config> hash-ref argument
+to the methods L<default_values>, L<update> and L<create>.
+
+=over
+
+=item base
+
+If you want the method to process a particular Block element, rather than the
+whole form, you can pass the element as a C<base> argument.
+
+    $form->default_values(
+        $row,
+        {
+            base => $formfu_element,
+        },
+    );
+
+=item nested_base
+
+If you want the method to process a particular Block element by
+L<name|HTML::FormFu::Element/name>, you can pass the name as an argument.
+
+    $form->default_values(
+        $row,
+        {
+            nested_base => 'foo',
+        }'
+    );
+
+=back
+
+=head1 CONFIGURATION
+
+=head2 Config options for fields
+
+The following items are supported as C<model_config> options on form fields.
+
+=over
+
+=item accessor
+
+If set, C<accessor> will be used as a method-name accessor on the
+C<DBIx::Class> row object, instead of using the field name.
+
+=item delete_if_empty
+
+Useful for editing a "might_have" related row containing only one field.
+
+If the submitted value is blank, the related row is deleted.
+
+For the following DBIx::Class schemas:
+
+    package MySchema::Book;
+    use base 'DBIx::Class';
+    
+    __PACKAGE__->load_components(qw/ Core /);
+    
+    __PACKAGE__->table("book");
+    
+    __PACKAGE__->add_columns(
+        id    => { data_type => "INTEGER" },
+        title => { data_type => "TEXT" },
+    );
+    
+    __PACKAGE__->set_primary_key("id");
+    
+    __PACKAGE__->might_have( review => 'MySchema::Review', 'book' );
+    
+    1;
+
+
+    package MySchema::Review;
+    use base 'DBIx::Class';
+    
+    __PACKAGE__->load_components(qw/ Core /);
+    
+    __PACKAGE__->table("review");
+    
+    __PACKAGE__->add_columns(
+        book        => { data_type => "INTEGER" },
+        review_text => { data_type => "TEXT" },
+    );
+    
+    __PACKAGE__->set_primary_key("book");
+    
+    __PACKAGE__->belongs_to( book => 'MySchema::Book' );
+    
+    1;
+
+A suitable form for this would be:
+
+    elements:
+      - type: Text
+        name: title
+      
+      - type: Block
+        nested_name: review
+        elements:
+          - type: Text
+            name: review_text
+            model_config:
+              delete_if_empty: 1
+
+=item label
+
+To use a column value for a form field's
+L<label|HTML::FormFu::Element::_Field/label>.
+
+=back
+
+=head2 Config options for fields within a Repeatable block
+
+=over
+
+=item delete_if_true
+
+Intended for use on a L<Checkbox|HTML::FormFu::Element::Checkbox> field.
+
+If the checkbox is checked, the following occurs: for a has-many relationship,
+the related row is deleted; for a many-to-many relationship, the relationship
+link is removed.
+
+An example of use might be:
+
+    elements:
+      - type: Text
+        name: title
+      
+      - type: Hidden
+        name: review_count
+      
+      - type: Repeatable
+        nested_name: review
+        counter_name: review_count
+        elements:
+          - type: Hidden
+            name: book
+          
+          - type: Textarea
+            name: review_text
+          
+          - type: Checkbox
+            name: delete_review
+            label: 'Delete Review?'
+            model_config:
+              delete_if_true: 1
+
+Note: make sure the name of this field does not clash with one of your
+L<DBIx::Class::Row> method names (e.g. "delete") - see L</CAVEATS>.
+
+=back
+
+=head2 Config options for Repeatable blocks
+
+=over
+
+=item empty_rows
+
+For a Repeatable block corresponding to a has-many or many-to-many
+relationship, to allow the user to insert new rows, set C<empty_rows> to
+the number of extra repetitions you wish added to the end of the Repeatable
+block.
+
+=item new_rows_max
+
+=back
+
+=head2 Config options for options_from_model
 
 The column used for the element values is set with the C<model_config>
 value C<id_column> - or if not set, the table's primary column is used.
@@ -1390,7 +1479,7 @@ value C<id_column> - or if not set, the table's primary column is used.
 
 The column used for the element labels is set with the C<model_config>
 value C<label_column> - or if not set, the first text/varchar column found
-in the table is used - or if one is not found, the <id_column> is used
+in the table is used - or if one is not found, the C<id_column> is used
 instead.
 
     element:
@@ -1440,7 +1529,8 @@ C<add_valid> works for fieldnames that don't exist in the form.
 
 =head2 Set a field read only
 
-You can make a field read only. The value of such fields cannot be changed by the user even if he submits a value for it.
+You can make a field read only. The value of such fields cannot be changed by
+the user even if they submit a value for it.
 
   $field->model_config->{read_only} = 1;
   
