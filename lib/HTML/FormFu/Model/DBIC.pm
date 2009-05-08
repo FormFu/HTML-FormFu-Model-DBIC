@@ -214,13 +214,18 @@ sub _fill_in_fields {
                     || $dbic->$name->result_source->primary_columns;
 
                 my $info = $dbic->result_source->relationship_info($name);
+
                 if ( !defined $info or $info->{attrs}{accessor} eq 'multi' ) {
                     my @defaults = $dbic->$name->get_column($col)->all;
                     $field->default( \@defaults );
                 }
+                else {
+                    # has_one/might_have
+                    my($pk) = $dbic->result_source->primary_columns;
+                    $field->default( $dbic->$name->$pk );
+                }
             }
             else {
-
                 # This field is a method expected to return the value
                 $field->default( $dbic->$name );
             }
@@ -442,29 +447,29 @@ sub _save_relationships {
     return if $attrs->{no_follow};
 
     for my $rel (@$rels) {
-
         # don't follow rels to where we came from
         next
             if defined $attrs->{from}
                 && $attrs->{from} eq $rs->related_source($rel)->result_class;
+        
+        my @elements = @{ $base->get_all_elements( { nested_name => $rel } ) };
+        
+        my ($block)       = grep { !$_->is_field }   @elements;
+        my ($multi_value) = grep { $_->multi_value } @elements;
 
-        my ($block)
-            = grep { !$_->is_field }
-            @{ $base->get_all_elements( { nested_name => $rel } ) };
-
-        next if !defined $block;
+        next if !defined $block || !defined $multi_value;
         next if !$form->valid($rel);
 
         my $params = $form->param($rel);
 
-        if ( $block->is_repeatable ) {
+        if ( defined $block && $block->is_repeatable ) {
 
             # Handle has_many
 
             _save_has_many( $self, $dbic, $form, $rs, $block, $rel, $attrs );
 
         }
-        elsif ( ref $params eq 'HASH' ) {
+        elsif ( defined $block && ref $params eq 'HASH' ) {
             my $target = $dbic->find_related( $rel, {} );
 
             if ( !defined $target && grep { length $_ } values %$params ) {
@@ -480,6 +485,42 @@ sub _save_relationships {
                     nested_base => $rel,
                     from        => $dbic->result_class,
                 } );
+        }
+        elsif ( defined $multi_value ) {
+            # has_one or might_have relationship
+                        
+            my $info = $dbic->result_source->relationship_info($rel);
+            
+            my @fpkey = $dbic->related_resultset($rel)->result_source->primary_columns;
+            
+            croak 'multiple primary keys are not supported for has_one/might_have relationships'
+              if(@fpkey > 1);
+            
+            my $fpkey = shift @fpkey;
+            my ( $fkey, $skey ) = %{ $info->{cond} };
+            $fkey =~ s/^foreign\.//;
+            $skey =~ s/^self\.//;
+            
+            my $fclass = $info->{class};
+            
+            croak 'The primary key and the foreign key may not be the same column in class '.$fclass
+              if $fpkey eq $fkey;
+              
+            my $schema = $dbic->result_source->schema;
+            
+            # use transactions if supported by storage
+            $schema->txn_do(sub {
+
+                # reset any previous items which were related to $dbic        
+                $rs->schema->resultset($fclass)->search({ $fkey => $dbic->$skey })->update({ $fkey => undef });
+            
+                # set new related item
+                my $updated = $rs->schema->resultset($fclass)->search( { $fpkey => $params } )->update({ $fkey => $dbic->$skey });
+            
+                $schema->txn_rollback
+                  if $updated != 1;
+                  
+            });
         }
     }
 }
@@ -744,7 +785,9 @@ sub _save_columns {
         {
             $dbic->set_column( $accessor, $value );
         }
-        elsif ( $dbic->can($accessor) ) {
+        elsif ( $dbic->can($accessor) 
+            # and $accessor is not a has_one or might_have rel where the foreign key is on the foreign table
+            and !$dbic->result_source->relationship_info($accessor)) {
             $dbic->$accessor($value);
         }
         else {
@@ -1164,7 +1207,8 @@ For the following DBIx::Class schemas:
     __PACKAGE__->table("review");
     
     __PACKAGE__->add_columns(
-        book        => { data_type => "INTEGER" },
+        id          => { data_type => "INTEGER" },
+        book        => { data_type => "INTEGER", is_nullable => 1 },
         review_text => { data_type => "TEXT" },
     );
     
@@ -1189,6 +1233,23 @@ A suitable form for this would be:
 For C<might_have> and C<has_one> relationships, you generally shouldn't need
 to have a field for the related table's primary key, as DBIx::Class will
 handle retrieving the correct row automatically.
+
+You can also set a C<has_one> or C<might_have> relationship using a multi value
+field like L<Select|HTML::FormFu::Element::Select>. 
+
+    elements:
+      - type: Text
+        name: title
+      
+      - type: Select
+        nested: review
+        model_config:
+          resultset: Review
+
+This will load all reviews into the select field. If you select a review from
+that list, a current relationship to a review is removed and the new one is 
+added. This requires that the primary key of the C<Review> table and the 
+foreign key do not match.
 
 =head2 has_many and many_to_many relationships
 
