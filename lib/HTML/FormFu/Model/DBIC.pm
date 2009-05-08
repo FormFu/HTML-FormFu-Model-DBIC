@@ -454,10 +454,10 @@ sub _save_relationships {
         
         my @elements = @{ $base->get_all_elements( { nested_name => $rel } ) };
         
-        my ($block)       = grep { !$_->is_field }   @elements;
-        my ($multi_value) = grep { $_->multi_value } @elements;
+        my ($block)       = grep { !$_->is_field } @elements;
+        my ($multi_value) = grep { $_->is_field && $_->multi_value } @elements;
 
-        next if !defined $block || !defined $multi_value;
+        next if !defined $block && !defined $multi_value;
         next if !$form->valid($rel);
 
         my $params = $form->param($rel);

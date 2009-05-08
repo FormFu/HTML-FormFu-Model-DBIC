@@ -97,7 +97,6 @@ SQL
 CREATE TABLE user_band (
   user INTEGER NOT NULL,
   band INTEGER NOT NULL,
-  id INTEGER,
   PRIMARY KEY (user, band)
 );
 
