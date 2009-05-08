@@ -6,6 +6,9 @@
 
 # not ready yet
 ^t\/multiform
+^lib\/HTML\/FormFu\/Plugin\/DBIC\/NewRowPK\.pm$
+^t\/constraints\/dbic_new_row_pk\.t$
+^t\/constraints\/dbic_new_row_pk\.yml$
 
 ^\.perltidyrc$
 
