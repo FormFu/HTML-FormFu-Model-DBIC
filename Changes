@@ -1,4 +1,8 @@
-0.04002 2009-04-22
+0.04003 2009-05-10
+
+    - Bumped prerequisite HTML-FormFu to 0.04002
+
+0.04002 2009-05-08
 
     - New "empty_rows" setting - replaces now deprecated "new_empty_row".
     
