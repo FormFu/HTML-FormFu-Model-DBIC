@@ -68,6 +68,7 @@ sub options_from_model {
 
     my $id_col     = $attrs->{id_column};
     my $label_col  = $attrs->{label_column};
+    my $label_accessor = $attrs->{label_accessor};
     my $condition  = $attrs->{condition};
     my $attributes = $attrs->{attributes} || {};
 
@@ -107,7 +108,14 @@ sub options_from_model {
             @defaults;
     }
     else {
-        @defaults = map { [ $_->get_column($id_col), $_->get_column($label_col) ] } @defaults;
+        my $has_column = $source->has_column($label_col);
+        
+        @defaults = map {
+            [
+                $_->get_column($id_col),
+                $has_column ? $_->get_column($label_col) : $_->$label_col,
+            ]
+        } @defaults;
     }
 
     return @defaults;
