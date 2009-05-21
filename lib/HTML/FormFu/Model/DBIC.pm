@@ -68,7 +68,6 @@ sub options_from_model {
 
     my $id_col     = $attrs->{id_column};
     my $label_col  = $attrs->{label_column};
-    my $label_accessor = $attrs->{label_accessor};
     my $condition  = $attrs->{condition};
     my $attributes = $attrs->{attributes} || {};
 
