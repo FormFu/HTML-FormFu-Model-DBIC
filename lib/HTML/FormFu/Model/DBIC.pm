@@ -49,7 +49,7 @@ sub _compatible_attrs {
 
     if ( exists $config->{new_empty_row_multi} ) {
         warn "'new_empty_row_multi' is deprecated and is provided for compatibility only,\n"
-            . "and will be removed: see the documentation for 'empty_rows' instead.";
+            . "and will be removed: see the documentation for 'new_rows_max' instead.";
 
         $config->{new_empty_row} ||= $config->{new_empty_row_multi};
     }
