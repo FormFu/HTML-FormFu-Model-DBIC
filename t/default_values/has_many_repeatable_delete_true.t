@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 16;
+use Test::More tests => 18;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -38,26 +38,30 @@ $master->create_related( 'user', {
 
     is( scalar @reps, 4 );
 
-    is( $reps[0]->get_field('id_1')->default,      '1' );
-    is( $reps[0]->get_field('address_1')->default, 'home' );
+    is( $reps[0]->nested_name,                   'addresses_1' );
+
+    is( $reps[0]->get_field('id')->default,      '1' );
+    is( $reps[0]->get_field('address')->default, 'home' );
 
     ok( $reps[0]->get_field({ type => 'Checkbox' }) );
 
-    is( $reps[1]->get_field('id_2')->default,      '2' );
-    is( $reps[1]->get_field('address_2')->default, 'office' );
+    is( $reps[1]->nested_name,                   'addresses_2' );
+
+    is( $reps[1]->get_field('id')->default,      '2' );
+    is( $reps[1]->get_field('address')->default, 'office' );
 
     ok( $reps[1]->get_field({ type => 'Checkbox' }) );
 
     # empty rows
 
-    is( $reps[2]->get_field('id_3')->default,      undef );
-    is( $reps[2]->get_field('address_3')->default, undef );
+    is( $reps[2]->get_field('id')->default,      undef );
+    is( $reps[2]->get_field('address')->default, undef );
 
     # checkbox has been removed
     ok( !$reps[2]->get_field({ type => 'Checkbox' }) );
 
-    is( $reps[3]->get_field('id_4')->default,      undef );
-    is( $reps[3]->get_field('address_4')->default, undef );
+    is( $reps[3]->get_field('id')->default,      undef );
+    is( $reps[3]->get_field('address')->default, undef );
 
     # checkbox has been removed
     ok( !$reps[3]->get_field({ type => 'Checkbox' }) );

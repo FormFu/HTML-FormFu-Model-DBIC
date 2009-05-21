@@ -65,27 +65,27 @@ my $master = $schema->resultset('Master')->create({ id => 1 });
 
     is( scalar @reps, 3 );
 
-    is( $reps[0]->get_field('id_1')->default,   '2' );
-    is( $reps[0]->get_field('band_1')->default, 'b' );
+    is( $reps[0]->get_field('id')->default,   '2' );
+    is( $reps[0]->get_field('band')->default, 'b' );
 
-    is( $reps[1]->get_field('id_2')->default,   '3' );
-    is( $reps[1]->get_field('band_2')->default, 'c' );
+    is( $reps[1]->get_field('id')->default,   '3' );
+    is( $reps[1]->get_field('band')->default, 'c' );
 
-    is( $reps[2]->get_field('id_3')->default,   '4' );
-    is( $reps[2]->get_field('band_3')->default, 'd' );
+    is( $reps[2]->get_field('id')->default,   '4' );
+    is( $reps[2]->get_field('band')->default, 'd' );
 
     # check the same values from the form, not the block
 
-    is( $form->get_field( { nested_name => 'foo.bands.id_1' } )->default, '2' );
-    is( $form->get_field( { nested_name => 'foo.bands.band_1' } )->default,
+    is( $form->get_field( { nested_name => 'foo.bands_1.id' } )->default, '2' );
+    is( $form->get_field( { nested_name => 'foo.bands_1.band' } )->default,
         'b' );
 
-    is( $form->get_field( { nested_name => 'foo.bands.id_2' } )->default, '3' );
-    is( $form->get_field( { nested_name => 'foo.bands.band_2' } )->default,
+    is( $form->get_field( { nested_name => 'foo.bands_2.id' } )->default, '3' );
+    is( $form->get_field( { nested_name => 'foo.bands_2.band' } )->default,
         'c' );
 
-    is( $form->get_field( { nested_name => 'foo.bands.id_3' } )->default, '4' );
-    is( $form->get_field( { nested_name => 'foo.bands.band_3' } )->default,
+    is( $form->get_field( { nested_name => 'foo.bands_3.id' } )->default, '4' );
+    is( $form->get_field( { nested_name => 'foo.bands_3.band' } )->default,
         'd' );
 }
 

@@ -41,12 +41,12 @@ my $master = $schema->resultset('Master')-> create({ id => 1 });
             'id'           => 2,
             'name'         => 'new nick',
             'count'        => 3,
-            'bands.id_1'   => 2,
-            'bands.band_1' => 'b++',
-            'bands.id_2'   => 3,
-            'bands.band_2' => 'c++',
-            'bands.id_3'   => '',
-            'bands.band_3' => 'd++'
+            'bands_1.id'   => 2,
+            'bands_1.band' => 'b++',
+            'bands_2.id'   => 3,
+            'bands_2.band' => 'c++',
+            'bands_3.id'   => '',
+            'bands_3.band' => 'd++'
         } );
 
     ok( $form->submitted_and_valid );

@@ -44,12 +44,12 @@ my $master = $schema->resultset('Master')->create({ id => 1 });
             'id'                  => 2,
             'name'                => 'new nick',
             'count'               => 3,
-            'addresses.id_1'      => 2,
-            'addresses.address_1' => 'new home',
-            'addresses.id_2'      => 3,
-            'addresses.address_2' => 'new office',
-            'addresses.id_3'      => '',
-            'addresses.address_3' => '',
+            'addresses_1.id'      => 2,
+            'addresses_1.address' => 'new home',
+            'addresses_2.id'      => 3,
+            'addresses_2.address' => 'new office',
+            'addresses_3.id'      => '',
+            'addresses_3.address' => '',
         } );
 
     ok( $form->submitted_and_valid );

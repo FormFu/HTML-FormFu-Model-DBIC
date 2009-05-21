@@ -54,10 +54,10 @@ $master->create_related( 'user', {
 
     is( scalar @reps, 2 );
 
-    is( $reps[0]->get_field('id_1')->default,      '2' );
-    is( $reps[0]->get_field('address_1')->default, 'home' );
+    is( $reps[0]->get_field('id')->default,      '2' );
+    is( $reps[0]->get_field('address')->default, 'home' );
 
-    is( $reps[1]->get_field('id_2')->default,      '3' );
-    is( $reps[1]->get_field('address_2')->default, 'office' );
+    is( $reps[1]->get_field('id')->default,      '3' );
+    is( $reps[1]->get_field('address')->default, 'office' );
 }
 

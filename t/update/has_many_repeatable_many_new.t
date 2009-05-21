@@ -24,10 +24,10 @@ my $address_rs = $schema->resultset('Address');
 			'name'                => 'new nick',
 			'master'              => 1,
 			'count'               => 2,
-			'addresses.id_1'      => '',
-			'addresses.address_1' => 'new home',
-			'addresses.id_2'      => '',
-			'addresses.address_2' => 'new office',
+			'addresses_1.id'      => '',
+			'addresses_1.address' => 'new home',
+			'addresses_2.id'      => '',
+			'addresses_2.address' => 'new office',
 		}
 	);
     

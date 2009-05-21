@@ -52,11 +52,11 @@ my $master_rs = $schema->resultset('Master');
     $form->process( {
             'text_col'               => 'new text',
             'count'                  => 1,
-            'schedules.id_1'         => 3,
-            'schedules.date_1_day'   => '19',
-            'schedules.date_1_month' => '07',
-            'schedules.date_1_year'  => '2008',
-            'schedules.note_1'       => 'hi',
+            'schedules_1.id'         => 3,
+            'schedules_1.date_day'   => '19',
+            'schedules_1.date_month' => '07',
+            'schedules_1.date_year'  => '2008',
+            'schedules_1.note'       => 'hi',
         } );
 
     ok( $form->submitted_and_valid );

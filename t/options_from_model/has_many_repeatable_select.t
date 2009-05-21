@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 32;
+use Test::More tests => 34;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -63,11 +63,12 @@ my $master = $schema->resultset('Master')->create({ id => 1 });
     
     # band 1
     {
-        is( $bands[0]->get_field('id_1')->default,   '1' );
-        is( $bands[0]->get_field('band_1')->default, 'band 1' );
+        is( $bands[0]->nested_name,                'bands_1' );
+        is( $bands[0]->get_field('id')->default,   '1' );
+        is( $bands[0]->get_field('band')->default, 'band 1' );
         
         # user 3
-        my $select = $bands[0]->get_field('users_1');
+        my $select = $bands[0]->get_field('users');
         
         is_deeply( $select->default, [3, 4] );
         
@@ -87,12 +88,13 @@ my $master = $schema->resultset('Master')->create({ id => 1 });
     
     # band 2
     {
-        is( $bands[1]->get_field('id_2')->default,   '2' );
-        is( $bands[1]->get_field('band_2')->default, 'band 2' );
+        is( $bands[1]->nested_name,                'bands_2' );
+        is( $bands[1]->get_field('id')->default,   '2' );
+        is( $bands[1]->get_field('band')->default, 'band 2' );
         
         # user 3
-        my $select = $bands[1]->get_field('users_2');
-        
+        my $select = $bands[1]->get_field('users');
+
         is_deeply( $select->default, [5] );
         
         is( scalar @{ $select->options }, 5 );

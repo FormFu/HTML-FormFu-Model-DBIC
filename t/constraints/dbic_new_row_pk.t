@@ -13,23 +13,23 @@ $form->load_config_file('t/constraints/dbic_new_row_pk.yml');
             'id'                   => 2,
             'name'                 => 'new nick',
             'count'                => 3,
-            'addresses.id_1'       => 2,
-            'addresses.address_1'  => 'new home',
-            'addresses.my_label_1' => 'home label',
-            'addresses.id_2'       => '',
-            'addresses.address_2'  => 'new office',
-            'addresses.my_label_2' => 'office label',
-            'addresses.id_3'       => '',
-            'addresses.address_3'  => 'new address',
-            'addresses.my_label_3' => '',
+            'addresses_1.id'       => 2,
+            'addresses_1.address'  => 'new home',
+            'addresses_1.my_label' => 'home label',
+            'addresses_2.id'       => '',
+            'addresses_2.address'  => 'new office',
+            'addresses_2.my_label' => 'office label',
+            'addresses_3.id'       => '',
+            'addresses_3.address'  => 'new address',
+            'addresses_3.my_label' => '',
         } );
 
     
     ok( !$form->submitted_and_valid );
-    
+
     is_deeply(
         [
-            'addresses.my_label_3',
+            'addresses_3.my_label',
         ],
         [ $form->has_errors ],
     );
