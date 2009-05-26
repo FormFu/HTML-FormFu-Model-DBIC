@@ -494,24 +494,57 @@ sub _save_relationships {
                 } );
         }
         elsif ( defined $multi_value ) {
-            # has_one or might_have relationship
+            # belongs_to, has_one or might_have relationship
 
             my $info = $dbic->result_source->relationship_info($rel);
 
             my @fpkey = $dbic->related_resultset($rel)->result_source->primary_columns;
 
-            croak 'multiple primary keys are not supported for has_one/might_have relationships'
-              if(@fpkey > 1);
+            my @cond = (%{$info->{cond}}); 
+             
+            # make sure $rel is a has_one or might_have rel
+            # stolen from SQL/Translator/Parser/DBIx/Class
+                
+            my $fk_constraint;
+
+            # Get the key information, mapping off the foreign/self markers
+            my @refkeys = map {/^\w+\.(\w+)$/} @cond;
+            my @keys = map { $info->{cond}{$_} =~ /^\w+\.(\w+)$/ }
+                       grep { exists $info->{cond}{$_} }
+                           @cond;
+
+            #first it can be specified explicitly
+            if ( exists $info->{attrs}{is_foreign_key_constraint} ) {
+                $fk_constraint = $info->{attrs}{is_foreign_key_constraint};
+            }
+
+            # it can not be multi
+            elsif ( $info->{attrs}{accessor}
+                && $info->{attrs}{accessor} eq 'multi' ) {
+                $fk_constraint = 0;
+            }
+
+            # if indeed single, check if all self.columns are our primary keys.
+            # this is supposed to indicate a has_one/might_have...
+            # where's the introspection!!?? :)
+            else {
+                $fk_constraint = not $dbic->result_source->compare_relationship_keys( \@keys, \@fpkey );
+            }
+
+            next if($fk_constraint);
 
             my $fpkey = shift @fpkey;
-            my ( $fkey, $skey ) = %{ $info->{cond} };
+            my ( $fkey, $skey ) = @cond;
             $fkey =~ s/^foreign\.//;
             $skey =~ s/^self\.//;
 
             my $fclass = $info->{class};
 
             croak 'The primary key and the foreign key may not be the same column in class '.$fclass
-              if $fpkey eq $fkey;
+                if $fpkey eq $fkey;
+
+            croak 'multiple primary keys are not supported for has_one/might_have relationships'
+                if(@fpkey > 1);
 
             my $schema = $dbic->result_source->schema;
 

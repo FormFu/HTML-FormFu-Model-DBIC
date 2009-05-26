@@ -16,7 +16,7 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
-__PACKAGE__->belongs_to( master => 'MySchema::Master', 'id' );
+__PACKAGE__->belongs_to( master => 'MySchema::Master' );
 
 1;
 
