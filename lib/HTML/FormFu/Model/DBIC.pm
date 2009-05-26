@@ -9,7 +9,7 @@ use Scalar::Util qw( blessed );
 use Storable qw( dclone );
 use Carp qw( croak );
 
-our $VERSION = '0.04003';
+our $VERSION = '0.05000';
 $VERSION = eval $VERSION;
 
 # sub _compatible_config() is only required as long as we support deprecated

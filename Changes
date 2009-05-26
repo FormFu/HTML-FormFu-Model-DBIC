@@ -1,3 +1,10 @@
+0.05000 2009-05-26
+
+    - Fix update() "primary key and the foreign key may not be the same column"
+      errors.
+    
+    - options_from_model() 'label_col' works again with non-column accessors.
+
 0.04003 2009-05-10
 
     - Bumped prerequisite HTML-FormFu to 0.04002
