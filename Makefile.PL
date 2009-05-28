@@ -6,7 +6,7 @@ all_from 'lib/HTML/FormFu/Model/DBIC.pm';
 
 requires 'DateTime::Format::MySQL';
 requires 'DBD::SQLite';
-requires 'DBIx::Class' => '0.08002';
+requires 'DBIx::Class' => '0.081';
 requires 'HTML::FormFu' => '0.05000';
 requires 'List::MoreUtils';
 requires 'Task::Weaken'; # to ensure Scalar::Util was built with weaken()
