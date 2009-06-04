@@ -1,3 +1,7 @@
+?.????? 2009-05-26
+
+    - Fix delete_if_true to work inside a surrounding block
+
 0.05000 2009-05-26
 
     - Fix update() "primary key and the foreign key may not be the same column"

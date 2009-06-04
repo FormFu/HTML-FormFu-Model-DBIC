@@ -350,7 +350,7 @@ sub _fill_nested {
                         @{ $rep->get_fields };
 
                     if ( defined $del_field ) {
-                        $rep->remove_element($del_field);
+                        $del_field->parent->remove_element($del_field);
                     }
                 }
             }
