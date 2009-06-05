@@ -2,6 +2,8 @@
 
     - Fix delete_if_true to work inside a surrounding block
 
+    - Made DBIC deletes conditional on row being in_storage
+
 0.05000 2009-05-26
 
     - Fix update() "primary key and the foreign key may not be the same column"

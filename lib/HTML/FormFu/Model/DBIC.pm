@@ -739,7 +739,7 @@ sub _delete_has_many {
         unless $form->valid($nested_name)
             && $form->param_value($nested_name);
 
-    $row->delete;
+    $row->delete if ($row->in_storage);
 
     return 1;
 }
@@ -805,7 +805,7 @@ sub _save_columns {
             && ( !defined $value || !length $value ) )
         {
             $dbic->discard_changes if $dbic->is_changed;
-            $dbic->delete;
+            $dbic->delete if $dbic->in_storage;
             return;
         }
         if ( $dbic->result_source->has_column($accessor) ) {
