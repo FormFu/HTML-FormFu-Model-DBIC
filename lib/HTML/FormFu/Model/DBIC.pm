@@ -108,7 +108,7 @@ sub options_from_model {
     }
     else {
         my $has_column = $source->has_column($label_col);
-        
+
         @defaults = map {
             [
                 $_->get_column($id_col),
@@ -500,11 +500,11 @@ sub _save_relationships {
 
             my @fpkey = $dbic->related_resultset($rel)->result_source->primary_columns;
 
-            my @cond = (%{$info->{cond}}); 
-             
+            my @cond = (%{$info->{cond}});
+
             # make sure $rel is a has_one or might_have rel
             # stolen from SQL/Translator/Parser/DBIx/Class
-                
+
             my $fk_constraint;
 
             # Get the key information, mapping off the foreign/self markers
@@ -1104,7 +1104,7 @@ Arguments: $dbic_row, [\%config]
 
 Return Value: $form
 
-    $form->model->default_values( $row );
+    $form->model->default_values( $dbic_row );
 
 Set a form's default values from the database, to allow a user to edit them.
 
@@ -1114,7 +1114,7 @@ Arguments: [$dbic_row], [\%config]
 
 Return Value: $dbic_row
 
-    $form->model->update( $row );
+    $form->model->update( $dbic_row );
 
 Update the database with the submitted form values.
 
@@ -1124,7 +1124,7 @@ Arguments: [\%config]
 
 Return Value: $dbic_row
 
-    $form->model->create( $row );
+    my $dbic_row = $form->model->create( {resultset => 'Book'} );
 
 Like L</update>, but doesn't require a C<$dbic_row> argument.
 
