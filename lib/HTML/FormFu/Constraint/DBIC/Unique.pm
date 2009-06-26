@@ -4,47 +4,80 @@ use strict;
 use warnings;
 use base 'HTML::FormFu::Constraint';
 
-__PACKAGE__->mk_accessors(qw/ model schema resultset field myself/);
+use Carp qw( carp croak );
+
+__PACKAGE__->mk_accessors(qw/ model resultset column self_stash_key /);
 
 sub constrain_value {
     my ( $self, $value ) = @_;
 
     return 1 if !defined $value || $value eq '';
 
-    # get stash 
-    my $stash = $self->form->stash;
-    
-    my $rs;
-    if ( $stash->{context} ) {
-        $rs = $stash->{context}->model($self->model);
-        $rs = $rs->resultset($self->resultset) if $self->resultset;
-    }
-    elsif ( $stash->{schema} ) {
-        $rs = $stash->{schema};
-        $rs = $rs->resultset($self->resultset) if $self->resultset;
-    }
-    else {
-        warn "need a Catalyst context or a DBIC schema in the stash\n"; 
-        $self->return_error('need a Catalyst context or a DBIC schema in the stash');
-        return 0;
-    }
-  
-    my $field = $self->field || $self->parent->name;
-    my $exists = eval { $rs->find({ $field => $value }) };
-
-    if ($@) {
-        warn $@;
-        $self->return_error($@);
-        return 0;
-    }
-
-    if ($exists && $self->myself) {
-        if ($stash->{$self->myself}) {
-            return 1 if $exists->id eq $stash->{$self->{myself}}->id;
+    for (qw/ resultset column /) {
+        if ( !defined $self->$_ ) {
+            # warn and die, as errors are swallowed by HTML-FormFu
+            carp  "'$_' is not defined";
+            croak "'$_' is not defined";
         }
     }
 
-    return !$exists;
+    # get stash 
+    my $stash = $self->form->stash;
+    
+    my $schema;
+
+    if ( defined $stash->{schema} ) {
+        $schema = $stash->{schema};
+    }
+    elsif ( defined $stash->{context} && defined $self->model ) {
+        $schema = $stash->{context}->model( $self->model );
+    }
+    elsif ( defined $stash->{context} ) {
+        $schema = $stash->{context}->model;
+    }
+
+    if ( !defined $schema ) {
+        # warn and die, as errors are swallowed by HTML-FormFu
+        carp  'could not find DBIC schema';
+        croak 'could not find DBIC schema';
+    }
+
+    my $resultset = $schema->resultset( $self->resultset );
+
+    if ( !defined $resultset ) {
+        # warn and die, as errors are swallowed by HTML-FormFu
+        carp  'could not find DBIC resultset';
+        croak 'could not find DBIC resultset';
+    }
+
+    my $column = $self->column || $self->parent->name;
+
+    my $existing_row = eval {
+        $resultset->find( { $column => $value } );
+    };
+
+    if ( defined( my $error = $@ ) ) {
+        # warn and die, as errors are swallowed by HTML-FormFu
+        carp  $error;
+        croak $error;
+    }
+
+    # if a row exists, first check whether it matches a known object on the
+    # form stash
+
+    if ( $existing_row && defined( my $self_stash_key = $self->self_stash_key ) ) {
+        
+        if ( defined( my $self_stash = $stash->{ $self_stash_key } ) ) {
+            
+            my ($pk) = $resultset->result_source->primary_keys;
+            
+            if ( $existing_row->$pk eq $self->stash->$pk ) {
+                return 1;
+            }
+        }
+    }
+
+    return !$existing_row;
 }
 
 1;
