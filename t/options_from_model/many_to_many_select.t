@@ -5,9 +5,9 @@ use Test::More tests => 1;
 use HTML::FormFu;
 use lib 't/lib';
 use DBICTestLib 'new_db';
+use HTMLFormFu::MockContext;
 use MySchema;
-use Test::MockObject;
-my $context = Test::MockObject->new();
+
 new_db();
 
 my $form = HTML::FormFu->new;
@@ -15,7 +15,11 @@ my $form = HTML::FormFu->new;
 $form->load_config_file('t/options_from_model/many_to_many_select.yml');
 
 my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
-$context->mock( model => sub { $schema->resultset('Band') } );
+
+my $context = HTMLFormFu::MockContext->new( {
+    model => $schema->resultset('Band'),
+} );
+
 $form->stash( { context => $context } );
 
 my $master = $schema->resultset('Master')->create({ id => 1 });

@@ -6,8 +6,7 @@ use HTML::FormFu;
 use lib 't/lib';
 use DBICTestLib 'new_db';
 use MySchema;
-use Test::MockObject;
-my $context = Test::MockObject->new();
+
 new_db();
 
 my $form = HTML::FormFu->new;
