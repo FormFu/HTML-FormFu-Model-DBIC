@@ -1,8 +1,14 @@
-?.????? 2009-05-26
+0.05001 2009-07-03
 
-    - Fix delete_if_true to work inside a surrounding block
-
-    - Made DBIC deletes conditional on row being in_storage
+    - Fix delete_if_true to work inside a surrounding block.
+    
+    - Made DBIC deletes conditional on row being in_storage.
+    
+    - Bump DBIx::Class prerequisite to 0.08106, when it switched from using
+      DateTime::Format::MySQL to DateTime::Format::SQLite.
+    
+    - Remove prerequisite Test::MockObject - it uses UNIVERSAL::isa which
+      was causing test failures.
 
 0.05000 2009-05-26
 
