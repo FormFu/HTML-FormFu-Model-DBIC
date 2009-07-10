@@ -1313,7 +1313,7 @@ outside of the Repeatable block.
 This field is used to store a count of the number of repetitions of the
 Repeatable block were created.
 When the form is submitted, this value is used during C<< $form->process >>
-to ensure the form is rebuild with the correct number of repetitions.
+to ensure the form is rebuilt with the correct number of repetitions.
 
 For the following DBIx::Class schemas:
 
