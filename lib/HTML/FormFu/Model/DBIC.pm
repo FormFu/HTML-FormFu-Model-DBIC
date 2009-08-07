@@ -1564,6 +1564,11 @@ block.
 
 =item new_rows_max
 
+Set to the maximum number of new rows that a Repeatable block is allowed to
+add.
+
+If not set, it will fallback to the value of C<empty_rows>.
+
 =back
 
 =head2 Config options for options_from_model
@@ -1655,7 +1660,7 @@ See C<empty_rows> in L</"Config options for Repeatable blocks"> instead.
 Is deprecated and provided only for backwards compatability.
 Will be removed at some point in the future.
 
-See C<empty_rows> in L</"Config options for Repeatable blocks"> instead.
+See C<new_rows_max> in L</"Config options for Repeatable blocks"> instead.
 
 =head2 Range constraint
 
