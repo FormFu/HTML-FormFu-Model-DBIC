@@ -19,5 +19,7 @@ __PACKAGE__->set_primary_key("id");
 
 __PACKAGE__->belongs_to( master => 'MySchema::Master' );
 
+__PACKAGE__->has_many( tasks => 'MySchema::Task', 'schedule' );
+
 1;
 

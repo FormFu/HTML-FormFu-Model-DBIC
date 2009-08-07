@@ -177,6 +177,17 @@ CREATE TABLE manager (
 
 SQL
 
+    $dbh->do( <<SQL );
+CREATE TABLE task (
+  id  INTEGER PRIMARY KEY NOT NULL,
+  schedule INTEGER NOT NULL,
+  deadline DATETIME,
+  detail   TEXT NOT NULL
+);
+
+SQL
+
+
 }
 
 
