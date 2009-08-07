@@ -17,6 +17,10 @@ __PACKAGE__->add_columns(
         data_type   => "INTEGER",
         is_nullable => 0,
     },
+    rating => {
+        data_type => "INTEGER",
+        is_nullable => 1,
+    }
 );
 
 __PACKAGE__->set_primary_key( "user", "band" );

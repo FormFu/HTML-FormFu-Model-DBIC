@@ -73,6 +73,16 @@ SQL
 
 
     $dbh->do( <<SQL );
+CREATE TABLE two_note (
+  id     INTEGER NOT NULL,
+  two_note_id INTEGER PRIMARY KEY NOT NULL,
+  note   TEXT NOT NULL
+);
+
+SQL
+
+
+    $dbh->do( <<SQL );
 CREATE TABLE user (
   id     INTEGER PRIMARY KEY NOT NULL,
   master INTEGER,
@@ -97,6 +107,7 @@ SQL
 CREATE TABLE user_band (
   user INTEGER NOT NULL,
   band INTEGER NOT NULL,
+  rating INTEGER,
   PRIMARY KEY (user, band)
 );
 

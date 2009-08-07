@@ -5,7 +5,7 @@ perl_version '5.008001';
 all_from 'lib/HTML/FormFu/Model/DBIC.pm';
 
 requires 'DBD::SQLite';
-requires 'DBIx::Class' => '0.08106';
+requires 'DBIx::Class' => '0.08108';
 # DBIx::Class 0.08106 switched from DateTime::Format::MySQL to ::SQLite
 # Rather than changing our prereqs depending on the installed version
 # of DBIx::Class, just bump the required version
