@@ -15,6 +15,7 @@ requires 'List::MoreUtils';
 requires 'Task::Weaken'; # to ensure Scalar::Util was built with weaken()
 
 test_requires 'DateTime::Format::SQLite';
+test_requires 'SQL::Translator'; # for $schema->deploy()
 
 tests_recursive;
 

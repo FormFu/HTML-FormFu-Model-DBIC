@@ -1,3 +1,6 @@
+    - Test suite now uses in-memory SQLite database, so tests can be run in
+      parallel.
+
 0.05003 2009-11-25
 
     - New 'link_values' and 'additive' options for multi-value fields for
