@@ -4,17 +4,15 @@ use Test::More tests => 9;
 
 use HTML::FormFu;
 use lib 't/lib';
-use DBICTestLib 'new_db';
+use DBICTestLib 'new_schema';
 use MySchema;
 use DateTime;
-
-new_db();
 
 my $form = HTML::FormFu->new;
 
 $form->load_config_file('t/update/has_many_repeatable_new_date.yml');
 
-my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
+my $schema = new_schema();
 
 my $master_rs = $schema->resultset('Master');
 

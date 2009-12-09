@@ -10,7 +10,7 @@ __PACKAGE__->table("band");
 
 __PACKAGE__->add_columns(
     id      => { data_type => "INTEGER", is_nullable => 0 },
-    manager => { data_type => "INTEGER" },
+    manager => { data_type => "INTEGER", is_nullable => 1 },
     band    => { data_type => "TEXT", is_nullable => 0 },
 );
 

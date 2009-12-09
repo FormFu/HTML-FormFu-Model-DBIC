@@ -4,15 +4,13 @@ use Test::More tests => 2;
 
 use HTML::FormFu;
 use lib 't/lib';
-use DBICTestLib 'new_db';
+use DBICTestLib 'new_schema';
 use MySchema;
-new_db();
-
 my $form = HTML::FormFu->new;
 
 $form->load_config_file('t/options_from_model/belongs_to_combobox.yml');
 
-my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
+my $schema = new_schema();
 
 $form->stash->{schema} = $schema;
 

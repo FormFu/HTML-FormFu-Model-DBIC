@@ -4,17 +4,15 @@ use Test::More tests => 1;
 
 use HTML::FormFu;
 use lib 't/lib';
-use DBICTestLib 'new_db';
+use DBICTestLib 'new_schema';
 use HTMLFormFu::MockContext;
 use MySchema;
-
-new_db();
 
 my $form = HTML::FormFu->new;
 
 $form->load_config_file('t/options_from_model/many_to_many_select.yml');
 
-my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
+my $schema = new_schema();
 
 my $context = HTMLFormFu::MockContext->new( {
     model => $schema->resultset('Band'),

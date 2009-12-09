@@ -4,10 +4,8 @@ use Test::More tests => 9;
 
 use HTML::FormFu;
 use lib 't/lib';
-use DBICTestLib 'new_db';
+use DBICTestLib 'new_schema';
 use MySchema;
-
-new_db();
 
 my $form = HTML::FormFu->new;
 
@@ -19,7 +17,7 @@ $form->load_config_file('t/update/has_many_repeatable_new_dependon.yml');
 # test a DependOn constraint attached to the PK column
 # with 'others' listing the required fields
 
-my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
+my $schema = new_schema();
 
 my $master = $schema->resultset('Master')->create({ id => 1 });
 

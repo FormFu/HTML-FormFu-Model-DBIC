@@ -4,16 +4,14 @@ use Test::More tests => 2;
 
 use HTML::FormFu;
 use lib 't/lib';
-use DBICTestLib 'new_db';
+use DBICTestLib 'new_schema';
 use MySchema;
-
-new_db();
 
 my $form = HTML::FormFu->new;
 
 $form->load_config_file('t/default_values/opt_accessor_nested.yml');
 
-my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
+my $schema = new_schema();
 
 my $master = $schema->resultset('Master')->create({ id => 1 });
 

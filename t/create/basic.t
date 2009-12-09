@@ -4,16 +4,14 @@ use Test::More tests => 6;
 
 use HTML::FormFu;
 use lib 't/lib';
-use DBICTestLib 'new_db';
+use DBICTestLib 'new_schema';
 use MySchema;
-
-new_db();
 
 my $form = HTML::FormFu->new;
 
 $form->load_config_file('t/create/basic.yml');
 
-my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
+my $schema = new_schema();
 
 # put schema on form stash
 $form->stash->{schema} = $schema;

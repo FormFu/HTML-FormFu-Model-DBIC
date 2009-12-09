@@ -12,7 +12,7 @@ __PACKAGE__->add_columns(
     id     => { data_type => "INTEGER", is_nullable => 0 },
     master => { data_type => "INTEGER", is_nullable => 1 },
     name   => { data_type => "TEXT", is_nullable => 0 },
-    title  => { data_type => "TEXT" },
+    title  => { data_type => "TEXT", is_nullable => 1 },
 );
 
 __PACKAGE__->set_primary_key("id");

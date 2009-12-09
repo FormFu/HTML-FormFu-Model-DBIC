@@ -4,14 +4,12 @@ use Test::More tests => 3;
 
 use HTML::FormFu;
 use lib 't/lib';
-use DBICTestLib 'new_db';
+use DBICTestLib 'new_schema';
 use MySchema;
-
-new_db();
 
 my $config_file = 't/x_roundtrip/checkbox.yml';
 
-my $schema = MySchema->connect('dbi:SQLite:dbname=t/test.db');
+my $schema = new_schema();
 
 my $rs = $schema->resultset('Master');
 

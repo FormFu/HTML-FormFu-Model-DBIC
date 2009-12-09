@@ -4,16 +4,14 @@ use Test::More tests => 7;
 
 use HTML::FormFu;
 use lib qw(t/lib lib);
-use DBICTestLib 'new_db';
+use DBICTestLib 'new_schema';
 use MySchema;
-
-new_db();
 
 my $form = HTML::FormFu->new;
 
 $form->load_config_file('t/update/has_many_repeatable_many_new.yml');
 
-my $schema     = MySchema->connect('dbi:SQLite:dbname=t/test.db');
+my $schema     = new_schema();
 my $user_rs    = $schema->resultset('User');
 my $address_rs = $schema->resultset('Address');
 
