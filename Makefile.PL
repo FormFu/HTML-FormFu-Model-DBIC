@@ -1,5 +1,9 @@
 use inc::Module::Install;
 
+if ( -e 'MANIFEST.SKIP' ) {
+    system( 'pod2text lib/HTML/FormFu/Model/DBIC.pm > README' );
+}
+
 name 'HTML-FormFu-Model-DBIC';
 perl_version '5.008001';
 all_from 'lib/HTML/FormFu/Model/DBIC.pm';

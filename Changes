@@ -1,5 +1,9 @@
+0.06000 2009-12-10
+
     - Test suite now uses in-memory SQLite database, so tests can be run in
       parallel.
+    
+    - many-to-many Checkboxgroup tests.
 
 0.05003 2009-11-25
 
