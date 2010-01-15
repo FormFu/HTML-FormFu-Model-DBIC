@@ -1400,7 +1400,7 @@ L<multiple|HTML::FormFu::Element::Select/multiple> set.
 The field's L<name|HTML::FormFu::Element::_Field/name> must be set to the 
 name of the C<many_to_many> relationship.
 
-=item default_column
+=head3 default_column
 
 If you want to search / associate the related table by a column other it's
 primary key, set C<< $field->model_config->{default_column} >>.
@@ -1411,6 +1411,8 @@ primary key, set C<< $field->model_config->{default_column} >>.
           name: authors
           model_config:
             default_column: foo
+
+=head3 link_values
 
 If you want to set columns on the link table you can do so if you add a 
 C<link_values> attribute to C<model_config>:
@@ -1423,6 +1425,7 @@ C<link_values> attribute to C<model_config>:
             link_values:
               foo: bar
 
+=head3 additive
 
 The default implementation will first remove all related objects and set the
 new ones (see L<http://search.cpan.org/perldoc?DBIx::Class::Relationship::Base#set_$rel>).
@@ -1437,7 +1440,7 @@ set C<additive> in the C<model_config>.
             additive: 1
             options_from_model: 0
 
-(<options_from_model> is set to C<0> because this L</options_from_model> will try to fetch
+L</options_from_model> is set to C<0> because it will try to fetch
 all objects from the result class C<Authors> if C<model_config> is specified
 without a C<resultset> attribute.)
 
