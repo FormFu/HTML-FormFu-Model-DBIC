@@ -16,7 +16,7 @@ __PACKAGE__->add_columns(
 
 __PACKAGE__->set_primary_key("id");
 
-__PACKAGE__->belongs_to( manager => 'MySchema::Manager', 'id' );
+__PACKAGE__->belongs_to( manager => 'MySchema::Manager' );
 
 __PACKAGE__->has_many( user_bands => 'MySchema::UserBand', 'band' );
 

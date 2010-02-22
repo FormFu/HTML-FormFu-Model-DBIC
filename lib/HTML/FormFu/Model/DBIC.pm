@@ -477,6 +477,7 @@ sub _save_relationships {
 
         }
         elsif ( defined $block && ref $params eq 'HASH' ) {
+            $dbic->$rel(undef) unless($dbic->$rel);
             my $target = $dbic->find_related( $rel, {} );
 
             if ( !defined $target && grep { length $_ } values %$params ) {
@@ -492,6 +493,10 @@ sub _save_relationships {
                     nested_base => $rel,
                     from        => $dbic->result_class,
                 } );
+            unless($dbic->$rel) {
+                $dbic->$rel($target);
+                $dbic->update;
+            }
         }
         elsif ( defined $multi_value ) {
             # belongs_to, has_one or might_have relationship
