@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More;
+use Test::More tests => 2;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -33,9 +33,5 @@ $form->process({ band => 'The Foobars', 'manager.name' => 'Mr Foo' });
 
 $form->model('DBIC')->update($band);
 
-$band->discard_changes;
-
 is($band->band, 'The Foobars');
 is($band->manager->name, 'Mr Foo');
-
-done_testing;
