@@ -1657,7 +1657,7 @@ C<localize_label>
         model_config:
           localize_label: 1
 
-You can set a C<condition>, which will be passed as the 1st arguement to
+You can set a C<condition>, which will be passed as the 1st argument to
 L<DBIx::Class::ResultSet/search>.
 
     element:
@@ -1668,8 +1668,42 @@ L<DBIx::Class::ResultSet/search>.
           condition:
             type: is_foo
 
-You can set C<attributes>, which will be passed as the 2nd arguement to
+You can set a C<condition_from_stash>, which will be passed as the 1st argument to
 L<DBIx::Class::ResultSet/search>.
+
+C<key> is the column-name to be passed to
+L<search|DBIx::Class::ResultSet/search>,
+and C<stash_key> is the name of a key on the form L<stash|HTML::FormFu/stash>
+from which the value to be passed to L<search|DBIx::Class::ResultSet/search>
+is found.
+
+    element:
+      - type: Select
+        name: foo
+        model_config:
+          resultset: TableClass
+          condition_from_stash:
+            key: stash_key
+
+Is comparable to:
+
+    $form->element({
+        type => 'Select',
+        name => 'foo',
+        model_config => {
+            resultset => 'TableClass',
+            condition => {
+                key => $form->stash->{stash_key}
+            }
+        }
+    })
+
+You can set C<attributes>, which will be passed as the 2nd argument to
+L<DBIx::Class::ResultSet/search>.
+
+
+
+
 
 =head1 FAQ
 
