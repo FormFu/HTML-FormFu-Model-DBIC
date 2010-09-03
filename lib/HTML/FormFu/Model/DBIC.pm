@@ -904,9 +904,6 @@ sub _save_multi_value_fields_many_to_many {
             }
 
             if($config->{additive}) {
-                
-                my $relinfo = $dbic->result_source->relationship_info($name);
-                
                 $pk =~ s/^.*\.//;
                 
                 my $set_method = "add_to_$name";
@@ -917,9 +914,21 @@ sub _save_multi_value_fields_many_to_many {
                     $dbic->$set_method($row, $config->{link_values});
                 }
             } else {
-                my $set_method = "set_$name";
-                
-                $dbic->$set_method( \@rows, $config->{link_values} );
+                # check if there is a restricting condition on here
+                # if so life is more complex
+                if ( $config->{condition} ) {
+                    my $set_method    = "add_to_$name";
+                    my $remove_method = "remove_from_$name";
+                    foreach ( $dbic->$name->search( $config->{condition} )->all ) {
+                        $dbic->$remove_method($_);
+                    }
+                    foreach my $row ( @rows ) {
+                        $dbic->$set_method($row, $config->{link_values});
+                    }
+                } else {
+                    my $set_method = "set_$name";
+                    $dbic->$set_method( \@rows, $config->{link_values} );
+                }
             }
         }
     }
