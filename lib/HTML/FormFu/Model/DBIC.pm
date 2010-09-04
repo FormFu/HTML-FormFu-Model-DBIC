@@ -916,14 +916,25 @@ sub _save_multi_value_fields_many_to_many {
             } else {
                 # check if there is a restricting condition on here
                 # if so life is more complex
-                if ( $config->{condition} ) {
+                if ( $config->{condition} || $config->{condition_from_stash} ) {
                     my $set_method    = "add_to_$name";
                     my $remove_method = "remove_from_$name";
+                    my $condition     = $config->{condition} || {};
+                    if ( defined( my $from_stash = $attrs->{condition_from_stash} ) ) {
+                        for my $name ( keys %$from_stash ) {
+                            my $value = $form->stash->{ $from_stash->{$name} };
+
+                            croak "input value must not be a reference"
+                              if ref $value;
+
+                            $condition->{$name} = $value;
+                        }
+                    }
                     foreach ( $dbic->$name->search( $config->{condition} )->all ) {
                         $dbic->$remove_method($_);
                     }
-                    foreach my $row ( @rows ) {
-                        $dbic->$set_method($row, $config->{link_values});
+                    foreach my $row (@rows) {
+                        $dbic->$set_method( $row, $config->{link_values} );
                     }
                 } else {
                     my $set_method = "set_$name";
