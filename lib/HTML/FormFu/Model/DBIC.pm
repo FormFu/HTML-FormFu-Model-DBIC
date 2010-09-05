@@ -8,7 +8,6 @@ use List::MoreUtils qw( none notall );
 use Scalar::Util qw( blessed );
 use Storable qw( dclone );
 use Carp qw( croak );
-use Data::Dump;
 
 our $VERSION = '0.06000';
 $VERSION = eval $VERSION;
