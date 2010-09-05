@@ -8,6 +8,7 @@ use List::MoreUtils qw( none notall );
 use Scalar::Util qw( blessed );
 use Storable qw( dclone );
 use Carp qw( croak );
+use Data::Dump;
 
 our $VERSION = '0.06000';
 $VERSION = eval $VERSION;
@@ -86,6 +87,7 @@ sub options_from_model {
     $label_col = $id_col if !defined $label_col;
 
     if ( defined( my $from_stash = $attrs->{condition_from_stash} ) ) {
+        $condition = $condition ? { %{$condition} } : {}; # avoid overwriting attrs->{condition}
         for my $name ( keys %$from_stash ) {
             my $value = $form->stash->{ $from_stash->{$name} };
 
@@ -95,6 +97,8 @@ sub options_from_model {
             $condition->{$name} = $value;
         }
     }
+    # save the expanded condition for later use
+    $attrs->{'-condition'} = $condition if ($condition);
 
     $attributes->{'-columns'} = [ $id_col, $label_col ];
 
@@ -916,27 +920,18 @@ sub _save_multi_value_fields_many_to_many {
             } else {
                 # check if there is a restricting condition on here
                 # if so life is more complex
-                if ( $config->{condition} || $config->{condition_from_stash} ) {
+                my $condition = $config->{'-condition'};
+                if ($condition) {
                     my $set_method    = "add_to_$name";
                     my $remove_method = "remove_from_$name";
-                    my $condition     = $config->{condition} || {};
-                    if ( defined( my $from_stash = $attrs->{condition_from_stash} ) ) {
-                        for my $name ( keys %$from_stash ) {
-                            my $value = $form->stash->{ $from_stash->{$name} };
-
-                            croak "input value must not be a reference"
-                              if ref $value;
-
-                            $condition->{$name} = $value;
-                        }
-                    }
-                    foreach ( $dbic->$name->search( $config->{condition} )->all ) {
+                    foreach ( $dbic->$name->search($condition)->all ) {
                         $dbic->$remove_method($_);
                     }
                     foreach my $row (@rows) {
                         $dbic->$set_method( $row, $config->{link_values} );
                     }
-                } else {
+                }
+                else {
                     my $set_method = "set_$name";
                     $dbic->$set_method( \@rows, $config->{link_values} );
                 }
