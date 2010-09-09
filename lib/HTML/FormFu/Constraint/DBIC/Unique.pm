@@ -69,9 +69,9 @@ sub constrain_value {
         
         if ( defined( my $self_stash = $stash->{ $self_stash_key } ) ) {
             
-            my ($pk) = $resultset->result_source->primary_keys;
+            my ($pk) = $resultset->result_source->primary_columns;
             
-            if ( $existing_row->$pk eq $self->stash->$pk ) {
+            if ( $existing_row->$pk eq $self_stash->$pk ) {
                 return 1;
             }
         }
