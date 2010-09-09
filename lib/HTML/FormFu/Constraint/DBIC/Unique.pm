@@ -6,14 +6,14 @@ use base 'HTML::FormFu::Constraint';
 
 use Carp qw( carp croak );
 
-__PACKAGE__->mk_accessors(qw/ model resultset column self_stash_key /);
+__PACKAGE__->mk_accessors(qw/ model resultset column self_stash_key others /);
 
 sub constrain_value {
     my ( $self, $value ) = @_;
 
     return 1 if !defined $value || $value eq '';
 
-    for (qw/ resultset column /) {
+    for (qw/ resultset /) {
         if ( !defined $self->$_ ) {
             # warn and die, as errors are swallowed by HTML-FormFu
             carp  "'$_' is not defined";
@@ -51,12 +51,22 @@ sub constrain_value {
     }
 
     my $column = $self->column || $self->parent->name;
+    my %others;
+    if ( $self->others ) {
+        my @others = ref $self->others ? @{ $self->others }
+                       : $self->others;
+
+        my $param = $self->form->input;
+        %others = map { $_ => $param->{$_} }
+                  grep { defined $param->{$_} && $param->{$_} ne q{} } @others;
+
+    }
 
     my $existing_row = eval {
-        $resultset->find( { $column => $value } );
+        $resultset->find( { %others, $column => $value } );
     };
-
-    if ( defined( my $error = $@ ) ) {
+    
+    if ( my $error = $@ ) {
         # warn and die, as errors are swallowed by HTML-FormFu
         carp  $error;
         croak $error;
@@ -130,7 +140,7 @@ HTML::FormFu::Constraint::Unique
           - Required
           - type: DBIC::Unique
             model: DBIC::User
-            field: username
+            column: username
 
 
 =head1 DESCRIPTION
@@ -147,11 +157,34 @@ Arguments: $string # a Catalyst model name like 'DBIC::User'
 
 Arguments: $string # a DBIC resultset name like 'User'
 
-=head2 myself
+=head2 self_stash_key
 
 reference to a key in the form stash. if this key exists, the constraint
 will check if the id matches the one of this element, so that you can 
 use your own name.
+
+=head2 others
+
+Use this key to manage unique compound database keys which consist of
+more than one column. For example, if a database key consists of
+'category' and 'value', use a config file such as this:
+
+    ---
+    elements: 
+      - type:  Text
+        name:  category
+        label: Category
+        constraints:
+          - Required
+    
+      - type:  Text
+        name:  value
+        label: Value
+        constraints:
+          - Required
+          - type:       DBIC::Unique
+            resultset:  ControlledVocab
+            others:     category
 
 =head2 SEE ALSO
 
