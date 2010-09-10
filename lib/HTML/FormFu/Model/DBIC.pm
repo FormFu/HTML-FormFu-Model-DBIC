@@ -762,7 +762,7 @@ sub _fix_value {
     
     if ( defined $value ) {
         if ( (     $is_nullable
-                || $data_type =~ m/^timestamp|date|int|float|numeric/i
+                && $data_type =~ m/^timestamp|date|int|float|numeric/i
             )
 
             # comparing to '' does not work for inflated objects

@@ -1,5 +1,10 @@
 ???????
 
+    - Fix: Was trying to pass undef to NOT NULL columns - changed check from
+      ( $is_nullable || ... ) to ( $is_nullable && ... )
+      appears to have been unintentionally changed in svn r93 when the code
+      was a part of DBIx::Class::HTML::FormFu.
+    
     - many-to-many handling with restricting condition tests and code
       to prevent deleting outside of restriction in update code.
 
