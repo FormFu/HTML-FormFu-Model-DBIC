@@ -2,7 +2,6 @@
 ^xt\/
 ^config\.txt$
 ^MySchema.*\.sql$
-^lib\/HTML\/FormFu\/Constraint\/DBIC\/Unique\.pm$
 
 # not ready yet
 ^t\/multiform

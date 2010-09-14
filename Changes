@@ -8,6 +8,10 @@
     - many-to-many handling with restricting condition tests and code
       to prevent deleting outside of restriction in update code.
 
+    - New 'others' option for Constraint::DBIC::Unique.
+
+    - Constraint::DBIC::Unique tests added.
+
 0.06000 2009-12-10
 
     - Test suite now uses in-memory SQLite database, so tests can be run in
