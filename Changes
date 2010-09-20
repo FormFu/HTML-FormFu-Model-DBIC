@@ -1,5 +1,7 @@
 ???????
 
+    - Incompatible Change: removed all previously deprecated methods.
+    
     - Fix: Was trying to pass undef to NOT NULL columns - changed check from
       ( $is_nullable || ... ) to ( $is_nullable && ... )
       appears to have been unintentionally changed in svn r93 when the code

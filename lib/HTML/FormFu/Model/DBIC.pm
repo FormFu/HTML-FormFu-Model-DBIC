@@ -12,55 +12,8 @@ use Carp qw( croak );
 our $VERSION = '0.06000';
 $VERSION = eval $VERSION;
 
-# sub _compatible_config() is only required as long as we support deprecated
-# features and can be factored out when we remove support
-
-sub _compatible_config {
-    my ($object) = @_;
-
-    return _compatible_attrs( $object->model_config );
-}
-
-sub _compatible_attrs {
-    my ($config) = @_;
-
-    return {} unless keys %$config;
-
-# legacy model_config->{DBIC} style
-# test this works by reverting the test suite back `svn up -r 1020 t`
-# before running the tests
-
-    if ( exists $config->{DBIC} ) {
-        warn
-            "model_config->{DBIC}{} is deprecated and is provided for compatibilty only\n"
-            . "and will be removed: use model_config->{} instead.";
-
-        $config = dclone($config);
-
-        my $dbic = delete $config->{DBIC};
-
-        return _merge_hashes( $config, $dbic );
-    }
-
-    if ( exists $config->{new_empty_row} ) {
-        warn "'new_empty_row' is deprecated and is provided for compatibility only,\n"
-             . "and will be removed: see the documentation for 'empty_rows' instead.";
-    }
-
-    if ( exists $config->{new_empty_row_multi} ) {
-        warn "'new_empty_row_multi' is deprecated and is provided for compatibility only,\n"
-            . "and will be removed: see the documentation for 'new_rows_max' instead.";
-
-        $config->{new_empty_row} ||= $config->{new_empty_row_multi};
-    }
-
-    return $config;
-}
-
 sub options_from_model {
     my ( $self, $base, $attrs ) = @_;
-
-    $attrs = $attrs ? _compatible_attrs($attrs) : {};
 
     my $form      = $base->form;
     my $resultset = _get_resultset( $base, $form, $attrs );
@@ -156,8 +109,6 @@ sub _get_resultset {
 sub default_values {
     my ( $self, $dbic, $attrs ) = @_;
 
-    $attrs = $attrs ? _compatible_attrs($attrs) : {};
-
     my $form = $self->form;
     my $base = defined $attrs->{base} ? delete $attrs->{base} : $form;
 
@@ -189,7 +140,7 @@ sub _fill_in_fields {
     my ( $base, $dbic ) = @_;
     for my $field ( @{ $base->get_fields } ) {
         my $name   = $field->name;
-        my $config = _compatible_config($field);
+        my $config = $field->model_config;
 
         next if not defined $name || $config->{accessor};
         next if not is_direct_child( $base, $field );
@@ -267,7 +218,7 @@ sub _fill_nested {
         next if $block->is_field && !$block->is_block;
         next if !$block->can('nested_name');
 
-        my $config = _compatible_config($block);
+        my $config = $block->model_config;
 
         # first handle {label}
 
@@ -311,7 +262,6 @@ sub _fill_nested {
             my @rows = $dbic->$rel->all;
 
             my $count = $config->{empty_rows}    ? scalar @rows + $config->{empty_rows}
-                      : $config->{new_empty_row} ? scalar @rows + 1
                       :                            scalar @rows;
 
             my $blocks = $block->repeat($count);
@@ -337,7 +287,7 @@ sub _fill_nested {
 
             # remove 'delete' checkbox from the last repetition ?
 
-            if ( $config->{empty_rows} || $config->{new_empty_row} ) {
+            if ( $config->{empty_rows} ) {
 
                 my $new_row_count = $config->{empty_rows} ? $config->{empty_rows}
                                   : 1;
@@ -349,7 +299,7 @@ sub _fill_nested {
                     my $rep = $reps[$i];
 
                     my ($del_field)
-                        = grep { _compatible_config($_)->{delete_if_true} }
+                        = grep { $_->model_config->{delete_if_true} }
                         @{ $rep->get_fields };
 
                     if ( defined $del_field ) {
@@ -372,8 +322,6 @@ sub create {
 
     croak "invalid arguments" if @_ > 2;
 
-    $attrs = $attrs ? _compatible_attrs($attrs) : {};
-
     my $form = $self->form;
     my $base = defined $attrs->{base} ? delete $attrs->{base} : $form;
 
@@ -382,8 +330,8 @@ sub create {
 
     my $resultset
         = $attrs->{resultset}
-        || _compatible_config($base)->{resultset}
-        || _compatible_config($form)->{resultset}
+        || $base->model_config->{resultset}
+        || $form->model_config->{resultset}
         or croak 'could not find resultset name';
 
     $resultset = $schema->resultset($resultset);
@@ -397,8 +345,6 @@ sub update {
     my ( $self, $dbic, $attrs ) = @_;
 
     croak "row object missing" if !defined $dbic;
-
-    $attrs = $attrs ? _compatible_attrs($attrs) : $attrs;
 
     my $form = $self->form;
     my $base = defined $attrs->{base} ? delete $attrs->{base} : $form;
@@ -589,7 +535,7 @@ sub _save_has_many {
 
     my @blocks = @{ $block->get_elements };
     my $max    = $#blocks;
-    my $config = _compatible_config($block);
+    my $config = $block->model_config;
 
     my $new_rows_max     = $config->{new_rows_max} || $config->{empty_rows} || 0;
     my $new_rows_counter = 0;
@@ -613,16 +559,9 @@ sub _save_has_many {
 
         if (   ( !defined $value || $value eq '' )
             && (
-                ( # either new behaviour
-                    $new_rows_max
-                    && ( ++$new_rows_counter <= $new_rows_max )
-                )
-                ||
-                ( # or deprecated behaviour
-                    $config->{new_empty_row} )
-                    && ( $i == $max || $config->{new_empty_row_multi} )
-                )
-            )
+                $new_rows_max
+                && ( ++$new_rows_counter <= $new_rows_max )
+            ) )
         {
 
             # insert a new row
@@ -665,69 +604,45 @@ sub _insert_has_many {
 sub _can_insert_new_row {
     my ( $dbic, $form, $config, $repetition, $rel, $pk_field ) = @_;
     
-    if ( $config->{new_empty_row} ) {
-        # old, deprecated behaviour
+    my @rep_fields = @{ $repetition->get_fields };
+    
+    my $pk_name = $pk_field->nested_name;
+    
+    my @constraints = grep { $_->when->{field} eq $pk_name }
+                      grep { defined $_->when }
+                      map { @{ $_->get_constraints({ type => 'Required' }) } }
+                        @rep_fields;
+    
+    my @required_fields;
+    
+    if ( @constraints ) {
+        # if there are any Required constraints whose 'when' clause points to
+        # the PK field - check that all these fields are filled in - as
+        # the PK value is missing on new reps, so the constraint won't have run
         
-        my $rows = $config->{new_empty_row};
-    
-        $rows = [$rows] if ref $rows ne 'ARRAY';
-    
-        for my $name (@$rows) {
-            my ($field)
-                = grep { $_->original_name eq $name } @{ $repetition->get_fields };
-    
-            return if !defined $field;
-    
-            my $nested_name = $field->nested_name;
-            return if !$form->valid($nested_name);
-    
-            my $value = $form->param_value($nested_name);
-            return if !length $value;
-        }
+        return if
+            notall { defined && length }
+            map { $form->param_value( $_->nested_name ) }
+            map { $_->parent }
+              @constraints;
     }
     else {
-        # new behaviour
+        # otherwise, just check at least 1 field that matches either a column
+        # name or an accessor, is filled in
         
-        my @rep_fields = @{ $repetition->get_fields };
+        my $result_source = $dbic->$rel->result_source;
         
-        my $pk_name = $pk_field->nested_name;
+        #  only create a new record if (read from bottom)...
         
-        my @constraints = grep { $_->when->{field} eq $pk_name }
-                          grep { defined $_->when }
-                          map { @{ $_->get_constraints({ type => 'Required' }) } }
-                            @rep_fields;
-        
-        my @required_fields;
-        
-        if ( @constraints ) {
-            # if there are any Required constraints whose 'when' clause points to
-            # the PK field - check that all these fields are filled in - as
-            # the PK value is missing on new reps, so the constraint won't have run
-            
-            return if
-                notall { defined && length }
-                map { $form->param_value( $_->nested_name ) }
-                map { $_->parent }
-                  @constraints;
-        }
-        else {
-            # otherwise, just check at least 1 field that matches either a column
-            # name or an accessor, is filled in
-            
-            my $result_source = $dbic->$rel->result_source;
-            
-            #  only create a new record if (read from bottom)...
-            
-            return if
-                none { defined && length }
-                map { $form->param_value( $_->nested_name ) }
-                grep {
-                    $result_source->has_column( $_->original_name )
-                    || $result_source->can( $_->original_name )
-                }
-                grep { defined $_->original_name }
-                    @rep_fields;
-        }
+        return if
+            none { defined && length }
+            map { $form->param_value( $_->nested_name ) }
+            grep {
+                $result_source->has_column( $_->original_name )
+                || $result_source->can( $_->original_name )
+            }
+            grep { defined $_->original_name }
+                @rep_fields;
     }
     
     return 1;
@@ -737,7 +652,7 @@ sub _delete_has_many {
     my ( $form, $row, $rep ) = @_;
 
     my ($del_field)
-        = grep { _compatible_config($_)->{delete_if_true} }
+        = grep { $_->model_config->{delete_if_true} }
         @{ $rep->get_fields };
 
     return if !defined $del_field;
@@ -791,7 +706,7 @@ sub _save_columns {
     for my $field ( @{ $base->get_fields }, ) {
         next if not is_direct_child( $base, $field );
         
-        my $config = _compatible_config($field);
+        my $config = $field->model_config;
         next if $config->{delete_if_true};
         next if $config->{read_only};
         
@@ -892,7 +807,7 @@ sub _save_multi_value_fields_many_to_many {
             my @values = $form->param_list($nested_name);
             my @rows;
 
-            my $config = _compatible_config($field);
+            my $config = $field->model_config;
 
             my ($pk) = $config->{default_column}
                 || $related->result_source->primary_columns;
@@ -979,20 +894,14 @@ sub _save_repeatable_many_to_many {
                 my $row;
                 my $is_new;
 
-                my $config           = _compatible_config($block);
+                my $config           = $block->model_config;
                 my $new_rows_max     = $config->{new_rows_max} || $config->{empty_rows} || 0;
                 my $new_rows_counter = 0;
 
                 if (   ( !defined $value || $value eq '' )
                     && (
-                        ( # either new behaviour
                             $new_rows_max
                             && ( ++$new_rows_counter <= $new_rows_max )
-                        )
-                        ||
-                        ( # or deprecated behaviour
-                            $config->{new_empty_row} )
-                            && $i == $max
                         )
                     )
                 {
@@ -1054,7 +963,7 @@ sub _delete_many_to_many {
     my ( $form, $dbic, $row, $rel, $rep ) = @_;
 
     my ($del_field)
-        = grep { _compatible_config($_)->{delete_if_true} }
+        = grep { $_->model_config->{delete_if_true} }
         @{ $rep->get_fields };
 
     return if !defined $del_field;
@@ -1747,32 +1656,6 @@ the user even if they submit a value for it.
 
 See L<HTML::FormFu::Element::Label>.
 
-=head1 DEPRECATED
-
-=head2 new_empty_row
-
-Is deprecated and provided only for backwards compatability.
-Will be removed at some point in the future.
-
-See C<empty_rows> in L</"Config options for Repeatable blocks"> instead.
-
-=head2 new_empty_row_multi
-
-Is deprecated and provided only for backwards compatability.
-Will be removed at some point in the future.
-
-See C<new_rows_max> in L</"Config options for Repeatable blocks"> instead.
-
-=head2 Range constraint
-
-The suggestion to use a C<Range> constraint on the C<count> field to limit
-the number of repetitions of a Repeatable block, has been withdrawn.
-
-This was only useful in the case that there were no initial rows to be edited,
-otherwise the C<max()> value could not be known ahead of time.
-
-See C<empty_rows> in L</"Config options for Repeatable blocks"> instead.
-
 =head1 CAVEATS
 
 To ensure your column's inflators and deflators are called, we have to 
@@ -1782,6 +1665,20 @@ C<set_column>.
 Because of this, beware of having column names which clash with DBIx::Class 
 built-in method-names, such as C<delete>. - It will have obviously 
 undesirable results!
+
+=head1 REMOVED METHODS
+
+=head2 new_empty_row
+
+See C<empty_rows> in L</"Config options for Repeatable blocks"> instead.
+
+=head2 new_empty_row_multi
+
+See C<new_rows_max> in L</"Config options for Repeatable blocks"> instead.
+
+=head2 Range constraint
+
+See C<empty_rows> in L</"Config options for Repeatable blocks"> instead.
 
 =head1 SUPPORT
 
