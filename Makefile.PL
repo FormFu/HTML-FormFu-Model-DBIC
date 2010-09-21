@@ -19,6 +19,7 @@ requires 'DBIx::Class' => '0.08108';
 requires 'HTML::FormFu' => '0.05000';
 requires 'List::MoreUtils';
 requires 'Task::Weaken'; # to ensure Scalar::Util was built with weaken()
+requires 'YAML::Syck';
 
 test_requires 'DateTime::Format::SQLite';
 test_requires 'SQL::Translator'; # for $schema->deploy()
