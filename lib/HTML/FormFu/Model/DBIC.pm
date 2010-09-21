@@ -483,7 +483,7 @@ sub _save_relationships {
             # this is supposed to indicate a has_one/might_have...
             # where's the introspection!!?? :)
             else {
-                $fk_constraint = not $dbic->result_source->compare_relationship_keys( \@keys, \@fpkey );
+                $fk_constraint = not _compare_relationship_keys( \@keys, \@fpkey );
             }
 
             next if($fk_constraint);
@@ -519,6 +519,41 @@ sub _save_relationships {
         }
     }
 }
+
+# Copied from DBIx::Class::ResultSource
+sub _compare_relationship_keys {
+  my ($keys1, $keys2) = @_;
+
+  # Make sure every keys1 is in keys2
+  my $found;
+  foreach my $key (@$keys1) {
+    $found = 0;
+    foreach my $prim (@$keys2) {
+      if ($prim eq $key) {
+        $found = 1;
+        last;
+      }
+    }
+    last unless $found;
+  }
+
+  # Make sure every key2 is in key1
+  if ($found) {
+    foreach my $prim (@$keys2) {
+      $found = 0;
+      foreach my $key (@$keys1) {
+        if ($prim eq $key) {
+          $found = 1;
+          last;
+        }
+      }
+      last unless $found;
+    }
+  }
+
+  return $found;
+}
+
 
 sub _save_has_many {
     my ( $self, $dbic, $form, $rs, $block, $rel, $attrs ) = @_;
