@@ -9,7 +9,7 @@ use Scalar::Util qw( blessed );
 use Storable qw( dclone );
 use Carp qw( croak );
 
-our $VERSION = '0.06000';
+our $VERSION = '0.08000';
 $VERSION = eval $VERSION;
 
 sub options_from_model {
