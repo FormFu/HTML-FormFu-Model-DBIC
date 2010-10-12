@@ -159,7 +159,7 @@ __END__
 
 =head1 NAME
 
-HTML::FormFu::Constraint::DBIC::Unique
+HTML::FormFu::Constraint::DBIC::Unique - unique constraint for HTML::FormFu::Model::DBIC
 
 =head1 SYNOPSIS
 
