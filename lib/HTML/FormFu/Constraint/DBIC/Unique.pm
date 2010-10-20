@@ -1,12 +1,15 @@
 package HTML::FormFu::Constraint::DBIC::Unique;
+use Moose;
 
-use strict;
-use warnings;
-use base 'HTML::FormFu::Constraint';
+extends 'HTML::FormFu::Constraint';
 
 use Carp qw( carp croak );
 
-__PACKAGE__->mk_accessors(qw/ model resultset column self_stash_key others /);
+has model          => ( is => 'rw', traits  => ['Chained'] );
+has resultset      => ( is => 'rw', traits  => ['Chained'] );
+has column         => ( is => 'rw', traits  => ['Chained'] );
+has self_stash_key => ( is => 'rw', traits  => ['Chained'] );
+has others         => ( is => 'rw', traits  => ['Chained'] );
 
 sub constrain_value {
     my ( $self, $value ) = @_;

@@ -1,7 +1,7 @@
 package HTML::FormFu::Plugin::DBIC::NewRowPK;
+use Moose;
 
-use strict;
-use base 'HTML::FormFu::Plugin';
+extends 'HTML::FormFu::Plugin';
 
 use List::MoreUtils qw( any );
 use Carp qw( croak );
