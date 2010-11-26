@@ -39,7 +39,10 @@ sub options_from_model {
     $label_col = $id_col if !defined $label_col;
 
     if ( defined( my $from_stash = $attrs->{condition_from_stash} ) ) {
-        $condition = $condition ? { %{$condition} } : {}; # avoid overwriting attrs->{condition}
+        $condition
+            = $condition
+            ? { %{$condition} }
+            : {};    # avoid overwriting attrs->{condition}
         for my $name ( keys %$from_stash ) {
             my $value = $form->stash->{ $from_stash->{$name} };
 
@@ -49,6 +52,7 @@ sub options_from_model {
             $condition->{$name} = $value;
         }
     }
+
     # save the expanded condition for later use
     $attrs->{'-condition'} = $condition if ($condition);
 
@@ -59,14 +63,16 @@ sub options_from_model {
     my @defaults = $result->all;
 
     if ( $attrs->{localize_label} ) {
-        @defaults = map { { value => $_->get_column($id_col), label_loc => $_->get_column($label_col), } }
-            @defaults;
+        @defaults = map {
+            {   value     => $_->get_column($id_col),
+                label_loc => $_->get_column($label_col),
+            }
+        } @defaults;
     }
     else {
         my $has_column = $source->has_column($label_col);
 
-        @defaults = map {
-            [
+        @defaults = map { [
                 $_->get_column($id_col),
                 $has_column ? $_->get_column($label_col) : $_->$label_col,
             ]
@@ -92,7 +98,7 @@ sub _get_resultset {
         my $model = $context->model( $attrs->{model} );
 
         if ( defined( my $rs = $attrs->{resultset} ) ) {
-            $model = $model->resultset( $rs );
+            $model = $model->resultset($rs);
         }
 
         return $model;
@@ -181,12 +187,14 @@ sub _fill_in_fields {
                     $field->default( \@defaults );
                 }
                 else {
+
                     # has_one/might_have
-                    my($pk) = $dbic->result_source->primary_columns;
+                    my ($pk) = $dbic->result_source->primary_columns;
                     $field->default( $dbic->$name->$pk );
                 }
             }
             else {
+
                 # This field is a method expected to return the value
                 $field->default( $dbic->$name );
             }
@@ -261,8 +269,10 @@ sub _fill_nested {
 
             my @rows = $dbic->$rel->all;
 
-            my $count = $config->{empty_rows}    ? scalar @rows + $config->{empty_rows}
-                      :                            scalar @rows;
+            my $count
+                = $config->{empty_rows}
+                ? scalar @rows + $config->{empty_rows}
+                : scalar @rows;
 
             my $blocks = $block->repeat($count);
 
@@ -277,8 +287,10 @@ sub _fill_nested {
 
             if ( defined( my $param_name = $block->counter_name ) ) {
                 my ($field) = grep {
-                    $param_name eq
-                        ( defined $_->original_name ? $_->original_name : $_->name )
+                    $param_name eq (
+                        defined $_->original_name
+                        ? $_->original_name
+                        : $_->name )
                 } @{ $base->get_fields };
 
                 $field->default($count)
@@ -289,12 +301,14 @@ sub _fill_nested {
 
             if ( $config->{empty_rows} ) {
 
-                my $new_row_count = $config->{empty_rows} ? $config->{empty_rows}
-                                  : 1;
+                my $new_row_count
+                    = $config->{empty_rows}
+                    ? $config->{empty_rows}
+                    : 1;
 
                 my @reps = reverse @{ $block->get_elements };
 
-                for my $i ( 0 .. ($new_row_count-1) ) {
+                for my $i ( 0 .. ( $new_row_count - 1 ) ) {
 
                     my $rep = $reps[$i];
 
@@ -328,7 +342,7 @@ sub create {
     my $schema = $form->stash->{schema}
         or croak 'schema required on form stash, if no row object provided';
 
-    my $resultset
+    my $resultset 
         = $attrs->{resultset}
         || $base->model_config->{resultset}
         || $form->model_config->{resultset}
@@ -403,6 +417,7 @@ sub _save_relationships {
     return if $attrs->{no_follow};
 
     for my $rel (@$rels) {
+
         # don't follow rels to where we came from
         next
             if defined $attrs->{from}
@@ -410,7 +425,7 @@ sub _save_relationships {
 
         my @elements = @{ $base->get_all_elements( { nested_name => $rel } ) };
 
-        my ($block)       = grep { !$_->is_field } @elements;
+        my ($block) = grep { !$_->is_field } @elements;
         my ($multi_value) = grep { $_->is_field && $_->multi_value } @elements;
 
         next if !defined $block && !defined $multi_value;
@@ -426,8 +441,8 @@ sub _save_relationships {
 
         }
         elsif ( defined $block && ref $params eq 'HASH' ) {
-            $dbic->discard_changes unless( $dbic->$rel );
-            
+            $dbic->discard_changes unless ( $dbic->$rel );
+
             my $target = $dbic->find_related( $rel, {} );
 
             if ( !defined $target && grep { length $_ } values %$params ) {
@@ -443,19 +458,21 @@ sub _save_relationships {
                     nested_base => $rel,
                     from        => $dbic->result_class,
                 } );
-            unless($dbic->$rel) {
+            unless ( $dbic->$rel ) {
                 $dbic->$rel($target);
                 $dbic->update;
             }
         }
         elsif ( defined $multi_value ) {
+
             # belongs_to, has_one or might_have relationship
 
             my $info = $dbic->result_source->relationship_info($rel);
 
-            my @fpkey = $dbic->related_resultset($rel)->result_source->primary_columns;
+            my @fpkey = $dbic->related_resultset($rel)
+                ->result_source->primary_columns;
 
-            my @cond = (%{$info->{cond}});
+            my @cond = ( %{ $info->{cond} } );
 
             # make sure $rel is a has_one or might_have rel
             # stolen from SQL/Translator/Parser/DBIx/Class
@@ -465,8 +482,7 @@ sub _save_relationships {
             # Get the key information, mapping off the foreign/self markers
             my @refkeys = map {/^\w+\.(\w+)$/} @cond;
             my @keys = map { $info->{cond}{$_} =~ /^\w+\.(\w+)$/ }
-                       grep { exists $info->{cond}{$_} }
-                           @cond;
+                grep { exists $info->{cond}{$_} } @cond;
 
             #first it can be specified explicitly
             if ( exists $info->{attrs}{is_foreign_key_constraint} ) {
@@ -474,8 +490,9 @@ sub _save_relationships {
             }
 
             # it can not be multi
-            elsif ( $info->{attrs}{accessor}
-                && $info->{attrs}{accessor} eq 'multi' ) {
+            elsif ($info->{attrs}{accessor}
+                && $info->{attrs}{accessor} eq 'multi' )
+            {
                 $fk_constraint = 0;
             }
 
@@ -483,10 +500,11 @@ sub _save_relationships {
             # this is supposed to indicate a has_one/might_have...
             # where's the introspection!!?? :)
             else {
-                $fk_constraint = not _compare_relationship_keys( \@keys, \@fpkey );
+                $fk_constraint
+                    = not _compare_relationship_keys( \@keys, \@fpkey );
             }
 
-            next if($fk_constraint);
+            next if ($fk_constraint);
 
             my $fpkey = shift @fpkey;
             my ( $fkey, $skey ) = @cond;
@@ -495,65 +513,73 @@ sub _save_relationships {
 
             my $fclass = $info->{class};
 
-            croak 'The primary key and the foreign key may not be the same column in class '.$fclass
+            croak
+                'The primary key and the foreign key may not be the same column in class '
+                . $fclass
                 if $fpkey eq $fkey;
 
-            croak 'multiple primary keys are not supported for has_one/might_have relationships'
-                if(@fpkey > 1);
+            croak
+                'multiple primary keys are not supported for has_one/might_have relationships'
+                if ( @fpkey > 1 );
 
             my $schema = $dbic->result_source->schema;
 
             # use transactions if supported by storage
-            $schema->txn_do(sub {
+            $schema->txn_do(
+                sub {
 
-                # reset any previous items which were related to $dbic
-                $rs->schema->resultset($fclass)->search({ $fkey => $dbic->$skey })->update({ $fkey => undef });
+                    # reset any previous items which were related to $dbic
+                    $rs->schema->resultset($fclass)
+                        ->search( { $fkey => $dbic->$skey } )
+                        ->update( { $fkey => undef } );
 
-                # set new related item
-                my $updated = $rs->schema->resultset($fclass)->search( { $fpkey => $params } )->update({ $fkey => $dbic->$skey });
+                    # set new related item
+                    my $updated
+                        = $rs->schema->resultset($fclass)
+                        ->search( { $fpkey => $params } )
+                        ->update( { $fkey => $dbic->$skey } );
 
-                $schema->txn_rollback
-                  if $updated != 1;
+                    $schema->txn_rollback
+                        if $updated != 1;
 
-            });
+                } );
         }
     }
 }
 
 # Copied from DBIx::Class::ResultSource
 sub _compare_relationship_keys {
-  my ($keys1, $keys2) = @_;
+    my ( $keys1, $keys2 ) = @_;
 
-  # Make sure every keys1 is in keys2
-  my $found;
-  foreach my $key (@$keys1) {
-    $found = 0;
-    foreach my $prim (@$keys2) {
-      if ($prim eq $key) {
-        $found = 1;
-        last;
-      }
-    }
-    last unless $found;
-  }
-
-  # Make sure every key2 is in key1
-  if ($found) {
-    foreach my $prim (@$keys2) {
-      $found = 0;
-      foreach my $key (@$keys1) {
-        if ($prim eq $key) {
-          $found = 1;
-          last;
+    # Make sure every keys1 is in keys2
+    my $found;
+    foreach my $key (@$keys1) {
+        $found = 0;
+        foreach my $prim (@$keys2) {
+            if ( $prim eq $key ) {
+                $found = 1;
+                last;
+            }
         }
-      }
-      last unless $found;
+        last unless $found;
     }
-  }
 
-  return $found;
+    # Make sure every key2 is in key1
+    if ($found) {
+        foreach my $prim (@$keys2) {
+            $found = 0;
+            foreach my $key (@$keys1) {
+                if ( $prim eq $key ) {
+                    $found = 1;
+                    last;
+                }
+            }
+            last unless $found;
+        }
+    }
+
+    return $found;
 }
-
 
 sub _save_has_many {
     my ( $self, $dbic, $form, $rs, $block, $rel, $attrs ) = @_;
@@ -572,7 +598,7 @@ sub _save_has_many {
     my $max    = $#blocks;
     my $config = $block->model_config;
 
-    my $new_rows_max     = $config->{new_rows_max} || $config->{empty_rows} || 0;
+    my $new_rows_max = $config->{new_rows_max} || $config->{empty_rows} || 0;
     my $new_rows_counter = 0;
 
     # iterate over blocks, not rows
@@ -592,15 +618,14 @@ sub _save_has_many {
         my $value = $form->param_value( $pk_field->nested_name );
         my $row;
 
-        if (   ( !defined $value || $value eq '' )
-            && (
-                $new_rows_max
-                && ( ++$new_rows_counter <= $new_rows_max )
-            ) )
+        if (( !defined $value || $value eq '' )
+            && ( $new_rows_max
+                && ( ++$new_rows_counter <= $new_rows_max ) ) )
         {
 
             # insert a new row
-            $row = _insert_has_many( $dbic, $form, $config, $rep, $rel, $pk_field );
+            $row = _insert_has_many( $dbic, $form, $config, $rep, $rel,
+                $pk_field );
 
             next if !defined $row;
         }
@@ -629,7 +654,9 @@ sub _save_has_many {
 sub _insert_has_many {
     my ( $dbic, $form, $config, $repetition, $rel, $pk_field ) = @_;
 
-    return if ! _can_insert_new_row( $dbic, $form, $config, $repetition, $rel, $pk_field );
+    return
+        if !_can_insert_new_row( $dbic, $form, $config, $repetition, $rel,
+                $pk_field );
 
     my $row = $dbic->new_related( $rel, {} );
 
@@ -638,48 +665,47 @@ sub _insert_has_many {
 
 sub _can_insert_new_row {
     my ( $dbic, $form, $config, $repetition, $rel, $pk_field ) = @_;
-    
+
     my @rep_fields = @{ $repetition->get_fields };
-    
+
     my $pk_name = $pk_field->nested_name;
-    
+
     my @constraints = grep { $_->when->{field} eq $pk_name }
-                      grep { defined $_->when }
-                      map { @{ $_->get_constraints({ type => 'Required' }) } }
-                        @rep_fields;
-    
+        grep { defined $_->when }
+        map { @{ $_->get_constraints( { type => 'Required' } ) } } @rep_fields;
+
     my @required_fields;
-    
-    if ( @constraints ) {
+
+    if (@constraints) {
+
         # if there are any Required constraints whose 'when' clause points to
         # the PK field - check that all these fields are filled in - as
         # the PK value is missing on new reps, so the constraint won't have run
-        
-        return if
-            notall { defined && length }
+
+        return
+            if notall { defined && length }
             map { $form->param_value( $_->nested_name ) }
-            map { $_->parent }
-              @constraints;
+            map { $_->parent } @constraints;
     }
     else {
+
         # otherwise, just check at least 1 field that matches either a column
         # name or an accessor, is filled in
-        
+
         my $result_source = $dbic->$rel->result_source;
-        
+
         #  only create a new record if (read from bottom)...
-        
-        return if
-            none { defined && length }
+
+        return
+            if none { defined && length }
             map { $form->param_value( $_->nested_name ) }
-            grep {
-                $result_source->has_column( $_->original_name )
-                || $result_source->can( $_->original_name )
-            }
-            grep { defined $_->original_name }
-                @rep_fields;
+                grep {
+                           $result_source->has_column( $_->original_name )
+                        || $result_source->can( $_->original_name )
+                }
+                grep { defined $_->original_name } @rep_fields;
     }
-    
+
     return 1;
 }
 
@@ -687,8 +713,7 @@ sub _delete_has_many {
     my ( $form, $row, $rep ) = @_;
 
     my ($del_field)
-        = grep { $_->model_config->{delete_if_true} }
-        @{ $rep->get_fields };
+        = grep { $_->model_config->{delete_if_true} } @{ $rep->get_fields };
 
     return if !defined $del_field;
 
@@ -698,18 +723,18 @@ sub _delete_has_many {
         unless $form->valid($nested_name)
             && $form->param_value($nested_name);
 
-    $row->delete if ($row->in_storage);
+    $row->delete if ( $row->in_storage );
 
     return 1;
 }
 
 sub _fix_value {
     my ( $dbic, $col, $value, $field, ) = @_;
-    
+
     my $col_info    = $dbic->column_info($col);
     my $is_nullable = $col_info->{is_nullable} || 0;
     my $data_type   = $col_info->{data_type} || '';
-    
+
     if ( defined $value ) {
         if ( (     $is_nullable
                 && $data_type =~ m/^timestamp|date|int|float|numeric/i
@@ -723,15 +748,15 @@ sub _fix_value {
             $value = undef;
         }
     }
-    
-    if ( !defined $value
+
+    if (  !defined $value
         && defined $field
         && $field->isa('HTML::FormFu::Element::Checkbox')
         && !$is_nullable )
     {
         $value = 0;
     }
-    
+
     return $value;
 }
 
@@ -740,20 +765,22 @@ sub _save_columns {
 
     for my $field ( @{ $base->get_fields }, ) {
         next if not is_direct_child( $base, $field );
-        
+
         my $config = $field->model_config;
         next if $config->{delete_if_true};
         next if $config->{read_only};
-        
+
         my $name = $field->name;
         $name = $field->original_name if $field->original_name;
-        
+
         my $accessor = $config->{accessor} || $name;
         next if not defined $accessor;
-        
+
         my $value = $form->param_value( $field->nested_name );
-        
-        next if $config->{ignore_if_empty} && ( !defined $value || $value eq "" );
+
+        next
+            if $config->{ignore_if_empty}
+                && ( !defined $value || $value eq "" );
 
         my ($pk) = $dbic->result_source->primary_columns;
 
@@ -764,7 +791,7 @@ sub _save_columns {
             && ( !defined $value || !length $value ) )
         {
             $dbic->discard_changes if $dbic->is_changed;
-            $dbic->delete if $dbic->in_storage;
+            $dbic->delete          if $dbic->in_storage;
             return;
         }
         if ( $dbic->result_source->has_column($accessor) ) {
@@ -784,9 +811,12 @@ sub _save_columns {
         {
             $dbic->set_column( $accessor, $value );
         }
-        elsif ( $dbic->can($accessor) 
-            # and $accessor is not a has_one or might_have rel where the foreign key is on the foreign table
-            and !$dbic->result_source->relationship_info($accessor)) {
+        elsif (
+            $dbic->can($accessor)
+
+# and $accessor is not a has_one or might_have rel where the foreign key is on the foreign table
+            and !$dbic->result_source->relationship_info($accessor) )
+        {
             $dbic->$accessor($value);
         }
         else {
@@ -796,7 +826,7 @@ sub _save_columns {
         }
     }
 
-    # for values inserted by add_valid - and not correlated to any field in the form
+# for values inserted by add_valid - and not correlated to any field in the form
     my $parent = $base;
     do {
         return 1 if defined $parent->nested_name;
@@ -806,17 +836,17 @@ sub _save_columns {
     for my $valid ( $form->valid ) {
         next if @{ $base->get_fields( name => $valid ) };
         next if not $dbic->can($valid);
-        
+
         my $value = $form->param_value($valid);
         $dbic->$valid($value);
     }
-    
+
     return 1;
 }
 
 sub _save_multi_value_fields_many_to_many {
     my ( $base, $dbic, $form, $attrs, $rels, $cols ) = @_;
-    
+
     my @fields = grep {
         ( defined $attrs->{nested_base} && defined $_->parent->nested_name )
             ? $_->parent->nested_name eq $attrs->{nested_base}
@@ -848,7 +878,7 @@ sub _save_multi_value_fields_many_to_many {
                 || $related->result_source->primary_columns;
 
             if (@values) {
-                
+
                 $pk = "me.$pk" unless $pk =~ /\./;
 
                 @rows = $related->result_source->resultset->search( {
@@ -856,17 +886,19 @@ sub _save_multi_value_fields_many_to_many {
                         $pk => { -in => \@values } } )->all;
             }
 
-            if($config->{additive}) {
+            if ( $config->{additive} ) {
                 $pk =~ s/^.*\.//;
-                
-                my $set_method = "add_to_$name";
+
+                my $set_method    = "add_to_$name";
                 my $remove_method = "remove_from_$name";
-                                
-                foreach my $row ( @rows ) {
+
+                foreach my $row (@rows) {
                     $dbic->$remove_method($row);
-                    $dbic->$set_method($row, $config->{link_values});
+                    $dbic->$set_method( $row, $config->{link_values} );
                 }
-            } else {
+            }
+            else {
+
                 # check if there is a restricting condition on here
                 # if so life is more complex
                 my $condition = $config->{'-condition'};
@@ -929,16 +961,16 @@ sub _save_repeatable_many_to_many {
                 my $row;
                 my $is_new;
 
-                my $config           = $block->model_config;
-                my $new_rows_max     = $config->{new_rows_max} || $config->{empty_rows} || 0;
+                my $config = $block->model_config;
+                my $new_rows_max 
+                    = $config->{new_rows_max}
+                    || $config->{empty_rows}
+                    || 0;
                 my $new_rows_counter = 0;
 
-                if (   ( !defined $value || $value eq '' )
-                    && (
-                            $new_rows_max
-                            && ( ++$new_rows_counter <= $new_rows_max )
-                        )
-                    )
+                if (( !defined $value || $value eq '' )
+                    && ( $new_rows_max
+                        && ( ++$new_rows_counter <= $new_rows_max ) ) )
                 {
 
                     # insert a new row
@@ -985,7 +1017,9 @@ sub _save_repeatable_many_to_many {
 sub _insert_many_to_many {
     my ( $dbic, $form, $config, $repetition, $rel, $pk_field ) = @_;
 
-    return if ! _can_insert_new_row( $dbic, $form, $config, $repetition, $rel, $pk_field );
+    return
+        if !_can_insert_new_row( $dbic, $form, $config, $repetition, $rel,
+                $pk_field );
 
     my $row = $dbic->$rel->new( {} );
 
@@ -998,8 +1032,7 @@ sub _delete_many_to_many {
     my ( $form, $dbic, $row, $rel, $rep ) = @_;
 
     my ($del_field)
-        = grep { $_->model_config->{delete_if_true} }
-        @{ $rep->get_fields };
+        = grep { $_->model_config->{delete_if_true} } @{ $rep->get_fields };
 
     return if !defined $del_field;
 
