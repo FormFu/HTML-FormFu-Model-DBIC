@@ -41,11 +41,8 @@ sub options_from_model {
     if ( defined( my $from_stash = $attrs->{condition_from_stash} ) ) {
         $condition = $condition ? { %{$condition} } : {}; # avoid overwriting attrs->{condition}
         for my $name ( keys %$from_stash ) {
+            croak "config value must not be a reference" if ref $from_stash->{$name};
             my $value = $form->stash->{ $from_stash->{$name} };
-
-            croak "input value must not be a reference"
-                if ref $value;
-
             $condition->{$name} = $value;
         }
     }
