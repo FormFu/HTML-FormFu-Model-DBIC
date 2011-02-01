@@ -10,6 +10,7 @@ has resultset      => ( is => 'rw', traits  => ['Chained'] );
 has column         => ( is => 'rw', traits  => ['Chained'] );
 has self_stash_key => ( is => 'rw', traits  => ['Chained'] );
 has others         => ( is => 'rw', traits  => ['Chained'] );
+has id_field       => ( is => 'rw', traits  => ['Chained'] );
 
 sub constrain_value {
     my ( $self, $value ) = @_;
@@ -88,6 +89,11 @@ sub constrain_value {
                 return 1;
             }
         }
+    } elsif ( $existing_row && defined (my $id_field = $self->id_field ) ) {
+        if ( defined ( my $id_field = $self->form->input->{ $id_field } ) ) {
+            my ($pk) = $resultset->result_source->primary_columns;
+            return ($existing_row->$pk eq $id_field);
+        }
     }
 
     return !$existing_row;
@@ -165,6 +171,28 @@ Arguments: $string # a DBIC resultset name like 'User'
 reference to a key in the form stash. if this key exists, the constraint
 will check if the id matches the one of this element, so that you can 
 use your own name.
+
+=head2 id_field
+
+Use this key to define reference field which consist of primary key of
+resultset. If the field exists (and $self_stash_key not defined), the
+constraint will check if the id matches the primary key of row object:
+
+    ---
+    elements:
+      - type:  Hidden
+        name:  id
+        constraints:
+          - Required
+
+      - type:  Text
+        name:  value
+        label: Value
+        constraints:
+          - Required
+          - type:       DBIC::Unique
+            resultset:  ControlledVocab
+            id_field:   id
 
 =head2 others
 

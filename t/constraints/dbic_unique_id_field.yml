@@ -11,6 +11,7 @@ elements:
       - Required
       - type:      DBIC::Unique
         resultset: User
+        id_field:  id
 
   - type: Text
     name: title
