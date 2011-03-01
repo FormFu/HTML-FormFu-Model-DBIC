@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 9;
+use Test::More tests => 5;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -8,7 +8,7 @@ use DBICTestLib 'new_schema';
 use MySchema;
 my $form = HTML::FormFu->new;
 
-$form->load_config_file('t/options_from_model/condition_from_stash.yml');
+$form->load_config_file('t/options_from_model/condition_from_stash_combobox.yml');
 
 my $schema = new_schema();
 
@@ -32,10 +32,10 @@ my $user_rs   = $schema->resultset('User');
     $m2->create_related( 'user', { name => 'e' } );
     $m2->create_related( 'user', { name => 'f' } );
     $m2->create_related( 'user', { name => 'g' } );
-
-    $form->stash->{master_id} = $m2->id;
 }
 
+# master_id contains complex condition
+$form->stash->{master_id} = {'!=' => '2' };
 $form->process;
 
 {
@@ -43,25 +43,9 @@ $form->process;
 
     ok( @$option == 4 );
 
-    is( $option->[0]->{label}, 'd' );
-    is( $option->[1]->{label}, 'e' );
-    is( $option->[2]->{label}, 'f' );
-    is( $option->[3]->{label}, 'g' );
-}
-
-$form = HTML::FormFu->new;
-$form->load_config_file('t/options_from_model/condition_from_stash.yml');
-$form->stash->{schema} = $schema;
-$form->stash->{master_id} = {'!=' => '2' };
-$form->process;
-
-{
-    my $option = $form->get_field('user')->options;
-
-    ok( @$option == 3 );
-
-    is( $option->[0]->{label}, 'a' );
-    is( $option->[1]->{label}, 'b' );
-    is( $option->[2]->{label}, 'c' );
+    is( $option->[0]->{label}, '' );
+    is( $option->[1]->{label}, 'a' );
+    is( $option->[2]->{label}, 'b' );
+    is( $option->[3]->{label}, 'c' );
 }
 
