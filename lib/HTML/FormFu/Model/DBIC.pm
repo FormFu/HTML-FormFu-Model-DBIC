@@ -441,7 +441,12 @@ sub _save_relationships {
 
         }
         elsif ( defined $block && ref $params eq 'HASH' ) {
-            $dbic->discard_changes unless ( $dbic->$rel );
+            # It seems that $dbic->$rel must be called otherwise the following
+            # find_related() can fail.
+            # However, this can die - so we're just wrapping it in an eval
+            eval {
+                $dbic->$rel;
+            } or $dbic->discard_changes;
 
             my $target = $dbic->find_related( $rel, {} );
 
