@@ -1,3 +1,9 @@
+0.09000 2011-03-01
+
+    - Updated to work with HTML-FormFu 0.09000
+    
+    - condition_from_stash now accepts hash from stash, but not from config.
+
 0.08002 2010-09-22
 
     - Incompatible Change: removed all previously deprecated methods.
