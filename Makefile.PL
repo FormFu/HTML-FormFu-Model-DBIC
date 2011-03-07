@@ -16,7 +16,7 @@ requires 'DBIx::Class' => '0.08108';
 # Rather than changing our prereqs depending on the installed version
 # of DBIx::Class, just bump the required version
 
-requires 'HTML::FormFu' => '0.05000';
+requires 'HTML::FormFu' => '0.09000';
 requires 'List::MoreUtils';
 requires 'Task::Weaken'; # to ensure Scalar::Util was built with weaken()
 requires 'YAML::Syck';
