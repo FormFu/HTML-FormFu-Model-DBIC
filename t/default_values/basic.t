@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 25;
+use Test::More tests => 31;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -28,6 +28,7 @@ $rs->create( {
         select_col     => '2',
         radio_col      => 'yes',
         radiogroup_col => '3',
+        array_col      => [qw(one two)],
         date_col       => '2006-12-31 00:00:00'
     } );
 
@@ -80,6 +81,20 @@ $rs->create( {
 
     is( $rg_option[2]->{value},               3 );
     is( $rg_option[2]->{attributes}{checked}, 'checked' );
+
+    # column is inflated
+    # my $ary_col = $fs->get_field('array_col')->default;
+    # isa_ok( $ary_col, 'ARRAY' );
+    my $ary_col = $fs->get_field('array_col')->render_data;
+
+    is( $ary_col->{options}[0]{value},               'one' );
+    is( $ary_col->{options}[0]{attributes}{checked}, 'checked' );
+
+    is( $ary_col->{options}[1]{value},               'two' );
+    is( $ary_col->{options}[1]{attributes}{checked}, 'checked' );
+
+    is( $ary_col->{options}[2]{value}, 'three' );
+    ok( !exists $ary_col->{options}[2]{attributes}{checked} );
 
     # column is inflated
     my $date = $fs->get_field('date_col')->default;

@@ -748,7 +748,10 @@ sub _save_columns {
         my $accessor = $config->{accessor} || $name;
         next if not defined $accessor;
         
-        my $value = $form->param_value( $field->nested_name );
+        my $value = ( $dbic->result_source->has_column($accessor) 
+				  and exists $dbic->result_source->column_info($accessor)->{is_array} )
+			? $form->param_array( $field->nested_name )
+        	: $form->param_value( $field->nested_name ) ;
         
         next if $config->{ignore_if_empty} && ( !defined $value || $value eq "" );
 

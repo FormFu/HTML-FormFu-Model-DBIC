@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 7;
+use Test::More tests => 9;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -24,6 +24,7 @@ my $rs = $schema->resultset('Master');
             combobox_col   => 'combo',
             radio_col      => 'xyzyes',
             radiogroup_col => 'xyz3',
+            array_col      => [qw(abc xyz)],
         } );
 
     $row->insert;
@@ -40,6 +41,7 @@ $form->process( {
         combobox_col_text   => 'txt',
         radio_col           => 'yes',
         radiogroup_col      => '3',
+        array_col           => [qw(one two)],
     } );
 
 {
@@ -58,5 +60,7 @@ $form->process( {
     is( $row->select_col,     '2' );
     is( $row->radio_col,      'yes' );
     is( $row->radiogroup_col, '3' );
+    is( ($row->array_col)->[0], 'one' );
+    is( ($row->array_col)->[1], 'two' );
 }
 

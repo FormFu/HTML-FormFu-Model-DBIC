@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 8;
+use Test::More tests => 10;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -26,6 +26,7 @@ $form->process( {
         combobox_col_text   => '',
         radio_col           => 'yes',
         radiogroup_col      => '3',
+        array_col           => [qw(one two)],
     } );
 
 {
@@ -43,7 +44,9 @@ $form->process( {
     is( $row->select_col,     '2' );
     is( $row->combobox_col,   'sel' );
     is( $row->radio_col,      'yes' );
-    is( $row->radiogroup_col, '3' )
+    is( $row->radiogroup_col, '3' );
+    is( ($row->array_col)->[0], 'one' );
+    is( ($row->array_col)->[1], 'two' );
 }
 
 $form->process( {
