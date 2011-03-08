@@ -212,6 +212,24 @@ more than one column. For example, if a database key consists of
             resultset:  ControlledVocab
             others:     category
 
+=head2 method_name
+
+Name of a method which will be called on the resultset. The method is passed
+two argument; the value of the field, and the primary key value (usually `id`)
+of the record in the form stash (as defined by self_stash_key). An example 
+config might be:
+
+    ---
+    elements: 
+      - type: text
+        name: user
+        constraints: 
+          - Required
+          - type: DBIC::Unique
+            model: DBIC::User
+            method_name: is_username_available
+
+
 =head2 SEE ALSO
 
 Is a sub-class of, and inherits methods from L<HTML::FormFu::Constraint>
