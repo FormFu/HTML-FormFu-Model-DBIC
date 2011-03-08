@@ -27,6 +27,8 @@ __PACKAGE__->has_many( hasmanys => 'MySchema::HasMany', 'user' );
 
 __PACKAGE__->many_to_many( bands => 'user_bands', 'band' );
 
+__PACKAGE__->resultset_class('MySchemaRS::User');
+
 sub fullname {
     my $self = shift;
 
