@@ -1773,20 +1773,12 @@ Please submit bugs / feature requests to
 L<http://code.google.com/p/html-formfu/issues/list> (preferred) or 
 L<http://rt.perl.org>.
 
-=head1 SUBVERSION REPOSITORY
+=head1 GITHUB REPOSITORY
 
-The publicly viewable subversion code repository is at 
-L<http://html-formfu.googlecode.com/svn/trunk/HTML-FormFu-Model-DBIC>.
+This module's sourcecode is maintained in a git repository at
+L<git://github.com/fireartist/HTML-FormFu-Model-DBIC.git>
 
-If you wish to contribute, you'll need a GMAIL email address. Then just 
-ask on the mailing list for commit access.
-
-If you wish to contribute but for some reason really don't want to sign up 
-for a GMAIL account, please post patches to the mailing list (although  
-you'll have to wait for someone to commit them). 
-
-If you have commit permissions, use the HTTPS repository url: 
-L<https://html-formfu.googlecode.com/svn/trunk/HTML-FormFu-Model-DBIC>
+The project page is L<https://github.com/fireartist/HTML-FormFu-Model-DBIC>
 
 =head1 SEE ALSO
 

@@ -8,7 +8,7 @@ name 'HTML-FormFu-Model-DBIC';
 perl_version '5.008001';
 all_from 'lib/HTML/FormFu/Model/DBIC.pm';
 
-repository 'http://html-formfu.googlecode.com/svn/trunk/HTML-FormFu-Model-DBIC';
+repository 'git://github.com/fireartist/HTML-FormFu-Model-DBIC.git';
 
 requires 'DBD::SQLite';
 requires 'DBIx::Class' => '0.08108';
