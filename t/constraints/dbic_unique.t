@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 14;
+use Test::More tests => 15;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -13,6 +13,7 @@ my $rs = $schema->resultset('User');
 
 # Pre-existing row to check against.
 $rs->create( {
+        id         => '1',
         name       => 'a',
         title      => 'b',
     } );
@@ -98,36 +99,6 @@ $rs->create( {
     );
 }
 
-# Form using a method_name to determine uniqueness (is_name_available).
-{
-    my $form = HTML::FormFu->new;
-        
-    $form->load_config_file('t/constraints/dbic_unique_method.yml');
-    
-    $form->stash->{'schema'} = $schema;
-
-    $form->process( {
-            'name'                 => 'a',
-            'title'                => 'c',
-        } );
-    
-    ok( $form->submitted_and_valid );
-
-    $form->process( {
-            'name'                 => 'xxx',
-            'title'                => 'b',
-        } );
-    
-    ok( !$form->submitted_and_valid );
-
-    is_deeply(
-        [
-            'name',
-        ],
-        [ $form->has_errors ],
-    );
-}
-
 # Form using a method_name to determine uniqueness with record on stash (is_name_available).
 {
     my $form = HTML::FormFu->new;
@@ -157,7 +128,59 @@ $rs->create( {
             'name'                 => 'e',
             'title'                => 'f',
         } );
-    
+}
+
+# Form where id_field defined
+{
+    my $form = HTML::FormFu->new;
+
+    $form->load_config_file('t/constraints/dbic_unique_id_field.yml');
+
+    $form->stash->{'schema'} = $schema;
+
+    # not uniq id - not uniq name => ok (no changes)
+    $form->process( {
+            'id'                   => '1',
+            'name'                 => 'a',
+            'title'                => 'c',
+        } );
+
+    ok( $form->submitted_and_valid );
+
+
+    # no id - uniq name => ok
+    $form->process( {
+            'name'                 => 'c',
+            'title'                => 'b',
+        } );
+
+    ok( $form->submitted_and_valid );
+
+
+    # not uniq id - uniq name => ok
+    $form->process( {
+            'id'                   => '1',
+            'name'                 => 'c',
+            'title'                => 'b',
+        } );
+
+    ok( $form->submitted_and_valid );
+
+    # no id - not uniq name -> error
+    $form->process( {
+            'name'                 => 'a',
+            'title'                => 'b',
+        } );
+
+    ok( !$form->submitted_and_valid );
+
+    # uniq id - not uniq name => error
+    $form->process( {
+            'id'                   => '2',
+            'name'                 => 'a',
+            'title'                => 'b',
+        } );
+
     ok( !$form->submitted_and_valid );
 
     is_deeply(
