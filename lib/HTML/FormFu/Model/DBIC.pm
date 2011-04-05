@@ -369,32 +369,11 @@ sub update {
     my @rels = $rs->relationships;
     my @cols = $rs->columns;
 
-    # check for belongs_to relationships with a required foreign key
-    my (@mandatory_rels, @non_mandatory_rels);
-
-    foreach my $rel (@rels) {
-        # 'fk_columns' is set for belong_to rels in DBIx::Class::Relationship::BelongsTo
-        my @fk_columns = keys %{ $dbic->relationship_info($rel)->{attrs}{fk_columns} };
-
-        if ( @fk_columns and notall { $dbic->column_info($_)->{is_nullable} } @fk_columns ) {
-            push @mandatory_rels, $rel;
-        } else {
-            push @non_mandatory_rels, $rel;
-        }
-    }
-
-    # add required belongs_to rels before insert
-    if (@mandatory_rels) {
-        # tell _save_relationships not to update $dbic yet, just add the rels
-        my %attrs = ( %$attrs, no_update => 1 );
-        _save_relationships( $self, $base, $dbic, $form, $rs, \%attrs, \@mandatory_rels );
-    }
-
     _save_columns( $base, $dbic, $form ) or return;
 
     $dbic->update_or_insert;
 
-    _save_relationships( $self, $base, $dbic, $form, $rs, $attrs, \@non_mandatory_rels );
+    _save_relationships( $self, $base, $dbic, $form, $rs, $attrs, \@rels );
 
     _save_multi_value_fields_many_to_many( $base, $dbic, $form, $attrs, \@rels,
         \@cols );
@@ -483,7 +462,7 @@ sub _save_relationships {
                 } );
             unless ( $dbic->$rel ) {
                 $dbic->$rel($target);
-                $dbic->update unless $attrs->{no_update};
+                $dbic->update;
             }
         }
         elsif ( defined $multi_value ) {
