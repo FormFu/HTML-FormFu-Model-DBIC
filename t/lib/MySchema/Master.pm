@@ -26,6 +26,7 @@ __PACKAGE__->add_columns(
     combobox_col   => { data_type => "TEXT", is_nullable => 1 },
     radio_col      => { data_type => "TEXT", is_nullable => 1 },
     radiogroup_col => { data_type => "TEXT", is_nullable => 1 },
+    array_col      => { data_type => "TEXT", is_nullable => 1, is_array => 1 },
     date_col       => { data_type => "DATETIME", is_nullable => 1 },
     type_id        => { data_type => "INTEGER", is_nullable => 1 },
     type2_id       => { data_type => "INTEGER", is_nullable => 1 },
@@ -48,6 +49,10 @@ __PACKAGE__->belongs_to(
     type2 => 'MySchema::Type2',
     { 'foreign.id' => 'self.type2_id' } );
 
+__PACKAGE__->inflate_column('array_col', {	# {key=>val}
+        inflate => __PACKAGE__->inflate_column_list_comma,
+        deflate => __PACKAGE__->deflate_column_list_comma,
+    });
 
 sub method_test {
     my $self = shift;
@@ -74,5 +79,17 @@ sub method_checkbox_test {
     }
     return $self->checkbox_col;
 }
+
+sub inflate_column_list_comma {
+  sub { 
+	[split(/,/,  shift )];
+  }
+}
+sub deflate_column_list_comma {
+  sub { 
+	join(',', @{(shift)} );
+  }
+}
+
 1;
 

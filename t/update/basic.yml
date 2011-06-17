@@ -41,6 +41,13 @@ elements:
     name: radiogroup_col
     values: [1, 2, 3]
     
+  - type: Checkboxgroup
+    name: array_col
+    options:
+      - [one]
+      - [two]
+      - [three]
+    
   - type: Text
     name: date_col
     
