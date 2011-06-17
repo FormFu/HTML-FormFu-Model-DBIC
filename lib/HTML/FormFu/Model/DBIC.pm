@@ -760,9 +760,9 @@ sub _fix_value {
     my $data_type   = $col_info->{data_type} || '';
 
     if ( defined $value ) {
-        if ( (     $is_nullable
-                && $data_type =~ m/^timestamp|date|int|float|numeric/i
-            )
+        if ( ( (     $is_nullable
+                  && $data_type =~ m/^timestamp|date|int|float|numeric/i
+            ) or $field->model_config->{null_if_empty} )
 
             # comparing to '' does not work for inflated objects
             && !ref $value 
@@ -1513,6 +1513,14 @@ The following items are supported as C<model_config> options on form fields.
 
 If set, C<accessor> will be used as a method-name accessor on the
 C<DBIx::Class> row object, instead of using the field name.
+
+=item ignore_if_empty
+
+If the submitted value is blank, no attempt will be made to save it to the database.
+
+=item null_if_empty
+
+If the submitted value is blank, save it as NULL to the database. Normally an empty string is saved as NULL when its corresponding field is numeric, and as an empty string when its corresponding field is a text field. This option is useful for changing the default behavior for text fields. 
 
 =item delete_if_empty
 
