@@ -390,7 +390,6 @@ sub update {
         _save_relationships( $self, $base, $dbic, $form, $rs, \%attrs, \@belongs_to_rels );
     }
 
-
     _save_columns( $base, $dbic, $form ) or return;
 
     $dbic->update_or_insert;
@@ -484,7 +483,7 @@ sub _save_relationships {
                 } );
             unless ( $dbic->$rel ) {
                 $dbic->$rel($target);
-                $dbic->update unless $attrs->{no_update};
+                $dbic->update;
             }
         }
         elsif ( defined $multi_value ) {
