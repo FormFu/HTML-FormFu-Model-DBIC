@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 5;
+use Test::More tests => 10;
 
 use HTML::FormFu;
 use lib 't/lib';
@@ -73,3 +73,34 @@ my $band1;
     is( $id[1], 3 );
 }
 
+{
+    $form->get_all_element({name => 'bands'})->model_config->{read_only} = 1;
+    $form->get_all_element({name => 'bands'})->model_config->{options_from_model} = 0;
+
+    $form->process( {
+            id    => 2,
+            name  => 'John Lennon',
+            bands => [ 2 ],
+        } );
+
+    ok( $form->submitted_and_valid );
+
+    my $row = $schema->resultset('User')->find(2);
+
+    $form->model->update($row);
+}
+
+{
+    my $row = $schema->resultset('User')->find(2);
+    
+    is( $row->name, 'John Lennon' );
+
+    my @bands = $row->bands->all;
+
+    is( scalar @bands, 2 );
+
+    my @id = sort map { $_->id } @bands;
+
+    is( $id[0], 1 );
+    is( $id[1], 3 );
+}
