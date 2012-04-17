@@ -5,6 +5,7 @@ use base 'HTML::FormFu::Model';
 
 use HTML::FormFu::Util qw( _merge_hashes );
 use List::MoreUtils qw( none notall );
+use List::Util qw( first );
 use Scalar::Util qw( blessed );
 use Storable qw( dclone );
 use Carp qw( croak );
@@ -23,6 +24,21 @@ sub options_from_model {
     my $label_col  = $attrs->{label_column};
     my $condition  = $attrs->{condition};
     my $attributes = $attrs->{attributes} || {};
+
+    my $enum_col =
+        first {
+            lc( $base->name ) eq lc($_);
+        }
+        grep {
+            my $data_type = $source->column_info($_)->{data_type};
+            defined $data_type && $data_type =~ /enum/i
+        } $source->columns;
+
+    if ( defined $enum_col ) {
+        return map {
+            [ $_, $_ ]
+        } @{ $source->column_info($enum_col)->{extra}{list} };
+    }
 
     if ( !defined $id_col ) {
         ($id_col) = $source->primary_columns;
@@ -1727,9 +1743,12 @@ Is comparable to:
 You can set C<attributes>, which will be passed as the 2nd argument to
 L<DBIx::Class::ResultSet/search>.
 
+=head3 ENUM Column Type
 
-
-
+If the field name matches (case-insensitive) a column name with type 'ENUM'
+and the Schema contains enum values in
+C<< $resultset->column_info($name)->{extra}{list} >>, the field's options
+will be populated with the enum values.
 
 =head1 FAQ
 

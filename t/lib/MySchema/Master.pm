@@ -30,6 +30,7 @@ __PACKAGE__->add_columns(
     date_col       => { data_type => "DATETIME", is_nullable => 1 },
     type_id        => { data_type => "INTEGER", is_nullable => 1 },
     type2_id       => { data_type => "INTEGER", is_nullable => 1 },
+    enum_col       => { data_type => "ENUM", is_nullable => 1, extra => { list => [qw( a b c )] } },
     not_in_form    => { data_type => "TEXT", is_nullable => 1 },
 );
 
