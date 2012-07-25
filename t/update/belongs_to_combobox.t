@@ -17,14 +17,6 @@ $form->stash->{schema} = $schema;
 
 my $rs = $schema->resultset('Master');
 
-# Fake submitted form
-$form->process( {
-        "id"       => 3,
-        "text_col" => 'a',
-        'type_id'  => '1',
-        'type2_id' => '1',
-    } );
-
 # filler rows
 {
     # insert some entries we'll ignore, so our rels don't have same ids
@@ -34,7 +26,19 @@ $form->process( {
 
 {
     # master 3
-    my $master = $rs->create( { text_col => 'b', type_id => 2, type2_id => 2 } );
+    my $master = $rs->create( {
+            text_col => 'b',
+            type_id  => 2,
+            type2_id => 2,
+    } );
+
+    # Fake submitted form
+    $form->process( {
+            "id"       => 3,
+            "text_col" => 'a',
+            'type_select'  => '1',
+            'type2_id' => '1',
+        } );
 
     $form->model->update($master);
 }

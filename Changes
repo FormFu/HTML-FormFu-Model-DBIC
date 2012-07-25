@@ -1,3 +1,6 @@
+
+    - Support belongs_to rel with a ComboBox element.
+
 0.09000 2011-03-29
 
     - Updated to work with HTML-FormFu 0.09000

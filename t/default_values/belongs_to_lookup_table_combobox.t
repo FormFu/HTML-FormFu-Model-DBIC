@@ -47,7 +47,7 @@ $rs->create( {
 
     is( $form->get_field('id')->default, 2 );
 
-    my $type_field = $form->get_field('type_id');
+    my $type_field = $form->get_field('type');
 
     is( $type_field->default, 3 );
 

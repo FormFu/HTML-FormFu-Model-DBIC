@@ -17,8 +17,5 @@ elements:
         select_column: id
         text_column: type
 
-  - type: ComboBox
-    name: type2_id
-  
   - type: Submit
     name: submit

@@ -462,6 +462,7 @@ sub _save_relationships {
 
         my ($block) = grep { !$_->is_field } @elements;
         my ($multi_value) = grep { $_->is_field && $_->multi_value } @elements;
+        my ($combo) = grep { $_->isa('HTML::FormFu::Element::ComboBox') } @elements;
 
         next if !defined $block && !defined $multi_value;
         next if !$form->valid($rel);
@@ -474,6 +475,10 @@ sub _save_relationships {
 
             _save_has_many( $self, $dbic, $form, $rs, $block, $rel, $attrs );
 
+        }
+        elsif ( defined $combo ) {
+
+            _save_combobox( $self, $base, $dbic, $form, $rs, $combo, $rel, $attrs );
         }
         elsif ( defined $block && ref $params eq 'HASH' ) {
             # It seems that $dbic->$rel must be called otherwise the following
@@ -585,6 +590,41 @@ sub _save_relationships {
                 } );
         }
     }
+}
+
+sub _save_combobox {
+    my ( $self, $base, $dbic, $form, $rs, $combo, $rel, $attrs ) = @_;
+    
+    my $select = $combo->get_field({ type => 'Select' });
+    my $text   = $combo->get_field({ type => 'Text' });
+    
+    my $select_value = $form->param( $select->nested_name );
+    my $text_value   = $form->param( $text->nested_name );
+    
+    my $target_rs = $dbic->result_source->related_source( $rel )->resultset;
+    my $target;
+    
+    if ( defined $select_value && length $select_value ) {
+        my $pk_name = $combo->model_config->{select_column};
+        
+        $target = $target_rs->find(
+            {
+                $pk_name => $select_value,
+            },
+        );
+    }
+    else {
+        my $column_name = $combo->model_config->{text_column};
+        
+        $target = $target_rs->create(
+            {
+                $column_name => $text_value,
+            },
+        );
+    }
+    
+    $dbic->set_from_related( $rel, $target );
+    $dbic->update;
 }
 
 # Copied from DBIx::Class::ResultSource
@@ -1428,6 +1468,28 @@ A suitable form for this would be:
           
           - type: Textarea
             name: review_text
+
+=head2 belongs_to relationships
+
+Belongs-to relationships can be edited / created with a ComboBox element.
+If the user selects a value with the Select field, the belongs-to will be set
+to an already-existing row in the related table.
+If the user enters a value into the Text field, the belongs-to will be set
+using a newly-created row in the related table.
+
+    elements:
+      - type: ComboBox
+        name: author
+        model_config:
+          resultset: Author
+          select_column: id
+          text_column: name
+
+The element name should match the relationship name.
+C<< $field->model_config->{select_column} >> should match the related primary
+column.
+C<< $field->model_config->{text_column} >> should match the related text
+column.
 
 =head2 many_to_many selection
 
