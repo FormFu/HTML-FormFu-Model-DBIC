@@ -1,5 +1,7 @@
 
     - Support belongs_to rel with a ComboBox element.
+    
+    - localize_label works with non-column label accessors.
 
 0.09000 2011-03-29
 

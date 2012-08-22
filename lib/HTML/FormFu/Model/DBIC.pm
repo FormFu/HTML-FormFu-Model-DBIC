@@ -78,7 +78,7 @@ sub options_from_model {
     if ( $attrs->{localize_label} ) {
         @defaults = map {
             {   value     => $_->get_column($id_col),
-                label_loc => $_->get_column($label_col),
+                label_loc => $has_column ? $_->get_column($label_col) : $_->$label_col,
             }
         } @defaults;
     }
