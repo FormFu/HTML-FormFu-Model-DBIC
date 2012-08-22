@@ -73,7 +73,8 @@ sub options_from_model {
 
     my $result = $resultset->search( $condition, $attributes );
 
-    my @defaults = $result->all;
+    my @defaults   = $result->all;
+    my $has_column = $source->has_column($label_col);
 
     if ( $attrs->{localize_label} ) {
         @defaults = map {
@@ -83,8 +84,6 @@ sub options_from_model {
         } @defaults;
     }
     else {
-        my $has_column = $source->has_column($label_col);
-
         @defaults = map { [
                 $_->get_column($id_col),
                 $has_column ? $_->get_column($label_col) : $_->$label_col,
