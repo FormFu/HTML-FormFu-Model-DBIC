@@ -1410,6 +1410,10 @@ Repeatable block were created.
 When the form is submitted, this value is used during C<< $form->process >>
 to ensure the form is rebuilt with the correct number of repetitions.
 
+To allow the user to add new related rows, either C<empty_rows> or
+C<new_rows_max> must be set - see L</"Config options for Repeatable blocks">
+below.
+
 For the following DBIx::Class schemas:
 
     package MySchema::Book;
@@ -1449,7 +1453,7 @@ For the following DBIx::Class schemas:
     
     1;
 
-A suitable form for this would be:
+A suitable form for this might be:
 
     elements:
       - type: Text
@@ -1461,6 +1465,8 @@ A suitable form for this would be:
       - type: Repeatable
         nested_name: review
         counter_name: review_count
+        model_config:
+          empty_rows: 1
         elements:
           - type: Hidden
             name: book
