@@ -5,6 +5,8 @@ extends 'HTML::FormFu::Constraint';
 
 use Carp qw( carp croak );
 
+use HTML::FormFu::Util qw( DEBUG_CONSTRAINTS debug );
+
 has model          => ( is => 'rw', traits  => ['Chained'] );
 has resultset      => ( is => 'rw', traits  => ['Chained'] );
 has column         => ( is => 'rw', traits  => ['Chained'] );
@@ -122,6 +124,27 @@ sub constrain_value {
 
     }
 }
+
+after repeatable_repeat => sub {
+    my ( $self, $repeatable, $new_block ) = @_;
+    
+    # rename any 'id_field' fields
+	if ( my $id_field = $self->id_field ) {
+		my $block_fields = $new_block->get_fields;
+		
+		my $field = $repeatable->get_field_with_original_name( $id_field, $block_fields );
+
+		if ( defined $field ) {
+			DEBUG_CONSTRAINTS && debug(
+				sprintf "Repeatable renaming constraint 'id_field' '%s' to '%s'",
+					$id_field,
+					$field->nested_name,
+			);
+
+			$self->id_field( $field->nested_name );
+		}
+	}
+};
 
 1;
 
