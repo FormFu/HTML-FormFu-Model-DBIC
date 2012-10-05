@@ -152,7 +152,7 @@ __END__
 
 =head1 NAME
 
-HTML::FormFu::Constraint::Unique
+HTML::FormFu::Constraint::DBIC::Unique
 
 =head1 SYNOPSIS
 
