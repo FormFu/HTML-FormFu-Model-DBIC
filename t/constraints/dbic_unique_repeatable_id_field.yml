@@ -8,6 +8,8 @@ elements:
   - type: Repeatable
     nested_name: user
     counter_name: count
+    model_config:
+      new_rows_max: 1
     elements:
       - type: Hidden
         name: id

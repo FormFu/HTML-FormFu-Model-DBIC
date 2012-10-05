@@ -83,9 +83,15 @@ sub constrain_value {
 			my @others = ref $self->others ? @{ $self->others }
 						   : $self->others;
 	
-			my $param = $self->form->input;
-			%others = map { $_ => $param->{$_} }
-					  grep { defined $param->{$_} && $param->{$_} ne q{} } @others;
+			my $params = $self->form->input;
+
+			%others =
+                grep {
+                    defined && length
+                }
+                map {
+                    $_ => $self->get_nested_hash_value( $params, $_ )
+                } @others;
 	
 		}
 	
@@ -114,9 +120,10 @@ sub constrain_value {
 			}
 		}
         elsif ( $existing_row && defined (my $id_field = $self->id_field ) ) {
-            if ( defined ( my $id_field = $self->form->input->{ $id_field } ) ) {
+            my $value = $self->get_nested_hash_value( $self->form->input, $id_field );
+            if ( defined $value && length $value ) {
                 my ($pk) = $resultset->result_source->primary_columns;
-                return ($existing_row->$pk eq $id_field);
+                return ($existing_row->$pk eq $value);
             }
         }
 	
