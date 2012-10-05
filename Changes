@@ -1,7 +1,19 @@
+0.09010 2012-10-05
 
     - Support belongs_to rel with a ComboBox element.
     
     - localize_label works with non-column label accessors.
+    
+    - Add support to create required belongs_to rels (pshangov).
+    
+    - options_from_model() can populate from DBIx::Class ENUM values.
+    
+    - Constraint::DBIC::Unique - new id_field() and method_name() methods.
+    
+    - Constraint::DBIC::Unique - others() now supports nested_names values.
+    
+    - Require HTML-FormFu v0.09010 due to internals used by
+      Constraint::DBIC::Unique
 
 0.09000 2011-03-29
 
