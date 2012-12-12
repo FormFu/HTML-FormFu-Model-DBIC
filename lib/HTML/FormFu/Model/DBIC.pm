@@ -956,6 +956,8 @@ sub _save_multi_value_fields_many_to_many {
 
             my $config = $field->model_config;
 
+            next if $config->{read_only};
+
             my ($pk) = $config->{default_column}
                 || $related->result_source->primary_columns;
 
