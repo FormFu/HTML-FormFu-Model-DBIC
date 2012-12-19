@@ -9,7 +9,7 @@ use MySchema;
 
 my $form = HTML::FormFu->new;
 
-$form->load_config_file('t/update/many_to_many_checkboxgroup.yml');
+$form->load_config_file('t/update/many_to_many_checkboxgroup_read_only.yml');
 
 my $schema = new_schema();
 
@@ -47,8 +47,8 @@ my $band1;
 {
     $form->process( {
             id    => 2,
-            name  => 'Paul McCartney',
-            bands => [ 1, 3 ],
+            name  => 'John Lennon',
+            bands => [ 2 ],
         } );
 
     ok( $form->submitted_and_valid );
@@ -61,7 +61,7 @@ my $band1;
 {
     my $row = $schema->resultset('User')->find(2);
     
-    is( $row->name, 'Paul McCartney' );
+    is( $row->name, 'John Lennon' );
 
     my @bands = $row->bands->all;
 
@@ -70,5 +70,5 @@ my $band1;
     my @id = sort map { $_->id } @bands;
 
     is( $id[0], 1 );
-    is( $id[1], 3 );
+    is( $id[1], 2 );
 }
