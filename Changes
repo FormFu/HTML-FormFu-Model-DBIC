@@ -1,3 +1,7 @@
+{{$NEXT}}
+
+    - tests updated for HTML-FormFu v1.00 changes
+
 0.09010 2012-10-05
 
     - Support belongs_to rel with a ComboBox element.
