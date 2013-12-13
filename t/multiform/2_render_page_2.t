@@ -1,9 +1,15 @@
 use strict;
 use warnings;
+use Test::More;
 
-use Test::More tests => 7;
+eval { require HTML::FormFu::MultiForm };
+if ($@) {
+    plan skip_all => 'HTML::FormFu::MultiForm required';
+    die $!;
+}
 
-use HTML::FormFu::MultiForm;
+plan tests => 7;
+
 use Crypt::CBC ();
 use Storable qw/ thaw /;
 use YAML::Syck qw/ LoadFile /;

@@ -1,9 +1,14 @@
 use strict;
 use warnings;
+use Test::More;
 
-use Test::More tests => 2;
+eval { require HTML::FormFu::MultiForm };
+if ($@) {
+    plan skip_all => 'HTML::FormFu::MultiForm required';
+    die $!;
+}
 
-use HTML::FormFu::MultiForm;
+plan tests => 2;
 
 my $multi = HTML::FormFu::MultiForm->new;
 
