@@ -35,7 +35,7 @@ $form->process;
 
 is(
   $form->get_field('type'),
-  qq{<div class="combobox">
+  qq{<div>
 <span class="elements">
 <select name="type_select">
 <option value=""></option>
@@ -50,7 +50,7 @@ is(
 
 is(
   $form->get_field('type2_id'),
-  qq{<div class="combobox">
+  qq{<div>
 <span class="elements">
 <select name="type2_id_select">
 <option value=""></option>

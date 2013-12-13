@@ -45,7 +45,7 @@ $form->stash->{'schema'} = $schema;
 
     ok( $form->has_errors('user_1.name') );
 
-    like( $form->get_field({ nested_name => 'user_1.name' }), qr/error_constraint_dbic_unique/ );
+    like( $form->get_field({ nested_name => 'user_1.name' }), qr/Value already exists/i );
 }
 
 # valid
@@ -73,7 +73,7 @@ $form->stash->{'schema'} = $schema;
 
     ok( $form->has_errors('user_1.name') );
 
-    like( $form->get_field({ nested_name => 'user_1.name' }), qr/error_constraint_dbic_unique/ );
+    like( $form->get_field({ nested_name => 'user_1.name' }), qr/Value already exists/i );
 }
 
 # valid
