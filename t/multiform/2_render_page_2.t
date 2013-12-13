@@ -5,7 +5,19 @@ use Test::More;
 eval { require HTML::FormFu::MultiForm };
 if ($@) {
     plan skip_all => 'HTML::FormFu::MultiForm required';
-    die $!;
+    die 'HTML::FormFu::MultiForm required';
+}
+
+eval { require Crypt::CBC };
+if ($@) {
+    plan skip_all => 'Crypt::CBC required';
+    die 'Crypt::CBC required';
+}
+
+eval { require YAML::Syck };
+if ($@) {
+    plan skip_all => 'YAML::Syck required';
+    die 'YAML::Syck required';
 }
 
 plan tests => 7;
