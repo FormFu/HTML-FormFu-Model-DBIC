@@ -5,7 +5,7 @@ use Test::More;
 eval { require HTML::FormFu::MultiForm };
 if ($@) {
     plan skip_all => 'HTML::FormFu::MultiForm required';
-    die $!;
+    die $@;
 }
 
 plan tests => 2;
