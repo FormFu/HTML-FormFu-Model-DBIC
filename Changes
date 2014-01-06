@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+1.01 2014-01-06
+
+    - don't "use" optional modules in tests
+
 1.00 2013-12-16
 
     - tests updated for HTML-FormFu v1.00 changes
