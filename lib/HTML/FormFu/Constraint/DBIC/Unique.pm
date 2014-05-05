@@ -1,5 +1,6 @@
 package HTML::FormFu::Constraint::DBIC::Unique;
 use Moose;
+use MooseX::Attribute::FormFuChained;
 
 extends 'HTML::FormFu::Constraint';
 
@@ -7,13 +8,13 @@ use Carp qw( carp croak );
 
 use HTML::FormFu::Util qw( DEBUG_CONSTRAINTS debug );
 
-has model          => ( is => 'rw', traits  => ['Chained'] );
-has resultset      => ( is => 'rw', traits  => ['Chained'] );
-has column         => ( is => 'rw', traits  => ['Chained'] );
-has method_name    => ( is => 'rw', traits  => ['Chained'] );
-has self_stash_key => ( is => 'rw', traits  => ['Chained'] );
-has others         => ( is => 'rw', traits  => ['Chained'] );
-has id_field       => ( is => 'rw', traits  => ['Chained'] );
+has model          => ( is => 'rw', traits  => ['FormFuChained'] );
+has resultset      => ( is => 'rw', traits  => ['FormFuChained'] );
+has column         => ( is => 'rw', traits  => ['FormFuChained'] );
+has method_name    => ( is => 'rw', traits  => ['FormFuChained'] );
+has self_stash_key => ( is => 'rw', traits  => ['FormFuChained'] );
+has others         => ( is => 'rw', traits  => ['FormFuChained'] );
+has id_field       => ( is => 'rw', traits  => ['FormFuChained'] );
 
 sub constrain_value {
     my ( $self, $value ) = @_;
