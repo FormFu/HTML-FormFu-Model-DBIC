@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+    - switch from MooseX::Attribute::Chained to MooseX::Attribute::FormFuChained
+
 1.01 2014-01-06
 
     - don't "use" optional modules in tests
