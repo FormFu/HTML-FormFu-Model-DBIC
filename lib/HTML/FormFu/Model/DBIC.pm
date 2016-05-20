@@ -1390,7 +1390,8 @@ foreign key do not match.
 The general principle is the same as for C<might_have> and C<has_one> above,
 except you should use a L<Repeatable|HTML::FormFu::Element::Repeatable>
 element instead of a Block, and it needs to contain a
-L<Hidden|HTML::FormFu::Element::Hidden> field corresponding to the foreign key.
+L<Hidden|HTML::FormFu::Element::Hidden> field corresponding to the primary key
+of the related table.
 
 The Repeatable block's
 L<nested_name|HTML::FormFu::Element::Repeatable/nested_name> must be set to the
