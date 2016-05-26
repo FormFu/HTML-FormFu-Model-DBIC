@@ -28,21 +28,21 @@ my $address_rs = $schema->resultset('Address');
 			'addresses_2.address' => 'new office',
 		}
 	);
-    
+
 	ok( $form->submitted_and_valid );
-	
+
     my $row = $user_rs->new( {} );
-	
+
     $form->model('DBIC')->update($row);
-	
+
     my $user = $user_rs->find(1);
-	
+
     is( $user->name, 'new nick' );
-	
+
     my @add = $user->addresses->all;
-	
+
     is( scalar @add,      2 );
-	
+
     is( $add[0]->id,      1 );
 	is( $add[0]->address, 'new home' );
 	is( $add[1]->id,      2 );

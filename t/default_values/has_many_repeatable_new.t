@@ -53,7 +53,7 @@ $master->create_related( 'user', {
 
     is( $reps[2]->get_field('id')->default,      undef );
     is( $reps[2]->get_field('address')->default, undef );
-    
+
     is( $reps[3]->get_field('id')->default,      undef );
     is( $reps[3]->get_field('address')->default, undef );
 }

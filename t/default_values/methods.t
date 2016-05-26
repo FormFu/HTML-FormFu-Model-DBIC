@@ -27,6 +27,6 @@ $rs->create( { text_col => 'filler', } );
     my $field = $form->get_element('method_test');
 
     is( $field->render_data->{value},           "filler" );
-    
+
 }
 

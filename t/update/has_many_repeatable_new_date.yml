@@ -21,7 +21,7 @@ elements:
         auto_inflate: 1
         constraints:
           - Required
-      
+
       - name: note
         constraints:
           - Required

@@ -20,13 +20,13 @@ my $master_rs = $schema->resultset('Master');
 {
     # user 1
     my $m1 = $master_rs->create( { text_col => 'foo' } );
-    
+
     # schedule 1
     $m1->create_related( 'schedules', {
         date => DateTime->new( year => 2008, month => 7, day => 16 ),
         note => 'a',
     } );
-    
+
     # schedule 2
     $m1->create_related( 'schedules', {
         date => DateTime->new( year => 2008, month => 7, day => 17 ),
@@ -38,7 +38,7 @@ my $master_rs = $schema->resultset('Master');
 {
     # user 2
     my $m2 = $master_rs->create( { text_col => 'orig text', } );
-    
+
     # schedule 3
     $m2->create_related( 'schedules', {
         date => DateTime->new( year => 2008, month => 7, day => 18 ),
@@ -74,14 +74,14 @@ my $master_rs = $schema->resultset('Master');
     is( scalar @schedule, 1 );
 
     is( $schedule[0]->id, 3 );
-    
+
     my $date = $schedule[0]->date;
-    
+
     isa_ok( $date, 'DateTime' );
-    
+
     is( $date->year,  2008 );
     is( $date->month, 7 );
     is( $date->day,   19 );
-    
+
     is( $schedule[0]->note, 'hi' );
 }

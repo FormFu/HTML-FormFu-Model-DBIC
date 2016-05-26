@@ -26,16 +26,16 @@ $rs->create( {
 # Basic form.
 {
     my $form = HTML::FormFu->new;
-        
+
     $form->load_config_file('t/constraints/dbic_unique.yml');
-    
+
     $form->stash->{'schema'} = $schema;
 
     $form->process( {
             'name'                 => 'a',
             'title'                => 'c',
         } );
-    
+
     ok( !$form->submitted_and_valid );
 
     is_deeply(
@@ -49,16 +49,16 @@ $rs->create( {
 # Form where DB column differs from form field name.
 {
     my $form = HTML::FormFu->new;
-        
+
     $form->load_config_file('t/constraints/dbic_unique_column.yml');
-    
+
     $form->stash->{'schema'} = $schema;
 
     $form->process( {
             'username'             => 'a',
             'title'                => 'c',
         } );
-    
+
     ok( !$form->submitted_and_valid );
 
     is_deeply(
@@ -72,23 +72,23 @@ $rs->create( {
 # Form tracking a multi-column unique key (name+title).
 {
     my $form = HTML::FormFu->new;
-        
+
     $form->load_config_file('t/constraints/dbic_unique_others.yml');
-    
+
     $form->stash->{'schema'} = $schema;
 
     $form->process( {
             'name'                 => 'a',
             'title'                => 'c',
         } );
-    
+
     ok( $form->submitted_and_valid );
 
     $form->process( {
             'name'                 => 'a',
             'title'                => 'b',
         } );
-    
+
     ok( !$form->submitted_and_valid );
 
     is_deeply(
@@ -102,11 +102,11 @@ $rs->create( {
 # Form using a method_name to determine uniqueness with record on stash (is_name_available).
 {
     my $form = HTML::FormFu->new;
-        
+
     $form->load_config_file('t/constraints/dbic_unique_method.yml');
-    
+
     my $user = $schema->resultset('User')->find( {name => 'a'} );
-    
+
     $form->stash->{'schema'} = $schema;
     $form->stash->{'user'}   = $user;
 
@@ -114,14 +114,14 @@ $rs->create( {
             'name'                 => 'a',
             'title'                => 'b',
         } );
-    
+
     ok( $form->submitted_and_valid );
 
     $form->process( {
             'name'                 => 'c',
             'title'                => 'd',
         } );
-    
+
     ok( $form->submitted_and_valid );
 
     $form->process( {

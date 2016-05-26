@@ -1,4 +1,8 @@
 package HTML::FormFu::Plugin::DBIC::NewRowPK;
+
+use strict;
+# VERSION
+
 use Moose;
 
 extends 'HTML::FormFu::Plugin';
@@ -12,7 +16,7 @@ sub process {
     my $pk_field = $self->parent;
     my $parent   = $pk_field->parent;
     my $block;
-    
+
     while ( defined $parent ) {
         if ( $parent->can('is_repeatable') && $parent->is_repeatable ) {
             $block = $parent;
@@ -27,20 +31,20 @@ sub process {
     my $nested_name = $pk_field->nested_name;
 
     for my $field ( @{ $block->get_fields } ) {
-        
+
         my @required_constraints = @{ $field->get_constraints({ type => 'Required' }) };
-        
+
         my @when_constraints =
             grep { $_->when->{field} eq $nested_name }
             grep { defined $_->when }
                 @required_constraints;
-        
+
         # skip if there's no Required constraints with a 'when' clause pointing to us
         next if !@when_constraints;
-        
+
         # skip if there's any Required constraints with no 'when' clause
         next if any { !defined $_->when } @required_constraints;
-        
+
         $field->constraint('Required');
     }
 
@@ -57,7 +61,7 @@ HTML::FormFu::Plugin::DBIC::NewRowPK
 
 =head1 SYNOPSIS
 
-    
+
 
 =head1 DESCRIPTION
 

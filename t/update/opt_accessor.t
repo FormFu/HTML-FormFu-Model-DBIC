@@ -36,7 +36,7 @@ my $master = $schema->resultset('Master')->create({ id => 1 });
         id       => 2,
         fullname => 'mr billy bob',
     } );
-    
+
     my $row = $schema->resultset('User')->find(2);
 
     $form->model->update($row);

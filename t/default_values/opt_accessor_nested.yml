@@ -5,11 +5,11 @@ auto_fieldset:
 elements:
   - type: Hidden
     name: id
-    
+
   - type: Text
     name: fullname
     model_config:
       accessor: fullname
-    
+
   - type: Submit
     name: submit

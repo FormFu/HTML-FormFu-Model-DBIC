@@ -22,7 +22,7 @@ my $rs = $schema->resultset('Master');
     # insert some entries we'll ignore, so our rels don't have same ids
     $rs->create( { id => 1 } );
     $rs->create( { id => 2 } );
-    
+
     # types
     my $type_rs  = $schema->resultset('Type');
     $type_rs->delete;
@@ -42,7 +42,7 @@ my $master = $rs->create( { text_col => 'aaa' } );
             "type_select" => '2',
             "type_text"   => '',
         } );
-    
+
     $form->model->update($master);
 
     my $row = $rs->find(3);
@@ -61,7 +61,7 @@ my $master = $rs->create( { text_col => 'aaa' } );
             "type_select" => '',
             "type_text"   => 'type 4',
         } );
-    
+
     $form->model->update($master);
 
     my $row = $rs->find(3);

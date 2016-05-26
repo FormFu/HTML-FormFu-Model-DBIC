@@ -33,10 +33,10 @@ my $band1;
 
     # band 2
     $u2->add_to_bands({ band => 'wings' });
-    
+
     # band 3 - not used
     $schema->resultset('Band')->create({ band => 'the kinks' });
-    
+
     # band 1
     $u2->add_to_bands($band1);
 }
@@ -61,7 +61,7 @@ my $band1;
 
 {
     my $row = $schema->resultset('User')->find(2);
-    
+
     is( $row->name, 'Paul McCartney' );
 
     my @bands = $row->bands->all;

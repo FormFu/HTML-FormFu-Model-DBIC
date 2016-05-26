@@ -4,14 +4,14 @@ auto_fieldset: 1
 elements:
   - type: Hidden
     name: id
-  
+
   - type: Text
     name: text_col
-  
+
   - type: Select
     name: user
     model_config:
       resultset: User
-  
+
   - type: Submit
     name: submit

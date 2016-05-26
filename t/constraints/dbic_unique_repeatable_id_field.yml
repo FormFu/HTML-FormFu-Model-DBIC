@@ -13,13 +13,13 @@ elements:
     elements:
       - type: Hidden
         name: id
-      
+
       - name: name
         constraints:
           - type: DBIC::Unique
             resultset: User
             id_field: user.id
-      
+
       - name: title
 
   - type: Submit

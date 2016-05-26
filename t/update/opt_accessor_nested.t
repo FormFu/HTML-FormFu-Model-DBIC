@@ -36,7 +36,7 @@ my $master = $schema->resultset('Master')->create({ id => 1 });
         'foo.id'       => 2,
         'foo.fullname' => 'mr billy bob',
     } );
-    
+
     my $row = $schema->resultset('User')->find(2);
 
     $form->model->update( $row, { nested_base => 'foo' } );

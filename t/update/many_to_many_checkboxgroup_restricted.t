@@ -39,7 +39,7 @@ my $band1;
     my $u2 = $master->create_related( 'user', { name => 'Paul' } );
 
     $u2->add_to_bands($band1);
-    
+
     # band 2
     $schema->resultset('Band')->create( { band => 'wings', manager => 1 } );
 
@@ -66,7 +66,7 @@ my $band1;
 
 {
     my $row = $schema->resultset('User')->find(2);
-    
+
     is( $row->name, 'Paul McCartney' );
 
     my @bands = $row->bands->all;

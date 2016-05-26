@@ -39,7 +39,7 @@ my $band1;
     my $u2 = $master->create_related( 'user', { name => 'Paul' } );
 
     $u2->add_to_bands($band1);
-    
+
     # band 2
     $u2->add_to_bands( { band => 'wings', manager => 1 } );
 
@@ -49,7 +49,7 @@ my $band1;
 
 {
     $form->process;
-    
+
     is_deeply(
         $form->get_field('bands')->options,
         [ {     'label_attributes'     => {},

@@ -4,11 +4,11 @@ auto_fieldset: 1
 elements:
   - type: Hidden
     name: id
-    
+
   - type: Text
     name: name
     model_config:
       label: title
-    
+
   - type: Submit
     name: submit

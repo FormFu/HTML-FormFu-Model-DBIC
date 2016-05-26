@@ -39,11 +39,11 @@ my $rs = $schema->resultset('Master');
         "text_col"  => 'a',
         "user.name" => 'bar',
     } );
-    
+
     ok( $form->submitted_and_valid );
 
     my $row = $schema->resultset('Master')->find(3);
-    
+
     $form->model->update($row);
 }
 

@@ -24,7 +24,7 @@ $form->load_config_file('t/constraints/dbic_new_row_pk.yml');
             'addresses_3.my_label' => '',
         } );
 
-    
+
     ok( !$form->submitted_and_valid );
 
     is_deeply(

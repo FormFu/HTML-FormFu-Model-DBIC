@@ -1,5 +1,4 @@
 ^t\/test\.db$
-^xt\/
 ^config\.txt$
 ^MySchema.*\.sql$
 

@@ -30,23 +30,23 @@ my $address_rs = $schema->resultset('Address');
 			'addresses_3.address' => 'new office2',
 		}
 	);
-    
+
 	ok( $form->submitted_and_valid );
-	
+
     my $row = $user_rs->new( {} );
-	
+
     $form->model('DBIC')->update($row);
-	
+
     my $user = $user_rs->find(1);
-	
+
     is( $user->name, 'new nick' );
-	
+
     my @add = $user->addresses->all;
-	
+
     # 3rd address isn't inserted
-    
+
     is( scalar @add,      2 );
-	
+
     is( $add[0]->id,      1 );
 	is( $add[0]->address, 'new home' );
 	is( $add[1]->id,      2 );

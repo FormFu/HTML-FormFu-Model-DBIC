@@ -35,9 +35,9 @@ $form->process;
 
 {
     my $option = $form->get_field('type')->options;
-    
+
     ok( @$option == 3 );
-    
+
     is( $option->[0]->{label}, 'type 1' );
     is( $option->[1]->{label}, 'type 2' );
     is( $option->[2]->{label}, 'type 3' );
@@ -45,9 +45,9 @@ $form->process;
 
 {
     my $option = $form->get_field('type2_id')->options;
-    
+
     ok( @$option == 3 );
-    
+
     is( $option->[0]->{label}, 'type 1' );
     is( $option->[1]->{label}, 'type 2' );
     is( $option->[2]->{label}, 'type 3' );

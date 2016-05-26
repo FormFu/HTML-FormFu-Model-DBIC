@@ -1,4 +1,8 @@
 package HTML::FormFu::Constraint::DBIC::Unique;
+
+use strict;
+# VERSION
+
 use Moose;
 use MooseX::Attribute::FormFuChained;
 
@@ -29,9 +33,9 @@ sub constrain_value {
         }
     }
 
-    # get stash 
+    # get stash
     my $stash = $self->form->stash;
-    
+
     my $schema;
 
     if ( defined $stash->{schema} ) {
@@ -69,13 +73,13 @@ sub constrain_value {
 			if ( defined( my $self_stash = $stash->{ $self_stash_key } ) ) {
 
 				my ($pk) = $resultset->result_source->primary_columns;
-				
+
 				$pk_val = $self_stash->$pk;
 			}
 		}
 
     	return $resultset->$method_name( $value, $pk_val );
-    } 
+    }
     else {
 
 		my $column = $self->column || $self->parent->name;
@@ -83,7 +87,7 @@ sub constrain_value {
 		if ( $self->others ) {
 			my @others = ref $self->others ? @{ $self->others }
 						   : $self->others;
-	
+
 			my $params = $self->form->input;
 
 			%others =
@@ -93,28 +97,28 @@ sub constrain_value {
                 map {
                     $_ => $self->get_nested_hash_value( $params, $_ )
                 } @others;
-	
+
 		}
-	
+
 		my $existing_row = eval {
 			$resultset->find( { %others, $column => $value } );
 		};
-		
+
 		if ( my $error = $@ ) {
 			# warn and die, as errors are swallowed by HTML-FormFu
 			carp  $error;
 			croak $error;
 		}
-	
+
 		# if a row exists, first check whether it matches a known object on the
 		# form stash
-	
+
 		if ( $existing_row && defined( my $self_stash_key = $self->self_stash_key ) ) {
-			
+
 			if ( defined( my $self_stash = $stash->{ $self_stash_key } ) ) {
-				
+
 				my ($pk) = $resultset->result_source->primary_columns;
-				
+
 				if ( $existing_row->$pk eq $self_stash->$pk ) {
 					return 1;
 				}
@@ -127,7 +131,7 @@ sub constrain_value {
                 return ($existing_row->$pk eq $value);
             }
         }
-	
+
 		return !$existing_row;
 
     }
@@ -135,11 +139,11 @@ sub constrain_value {
 
 after repeatable_repeat => sub {
     my ( $self, $repeatable, $new_block ) = @_;
-    
+
     # rename any 'id_field' fields
 	if ( my $id_field = $self->id_field ) {
 		my $block_fields = $new_block->get_fields;
-		
+
 		my $field = $repeatable->get_field_with_original_name( $id_field, $block_fields );
 
 		if ( defined $field ) {
@@ -164,7 +168,7 @@ HTML::FormFu::Constraint::DBIC::Unique - unique constraint for HTML::FormFu::Mod
 
 =head1 SYNOPSIS
 
-    $form->stash->{schema} = $dbic_schema; # DBIC schema 
+    $form->stash->{schema} = $dbic_schema; # DBIC schema
 
     $form->element('text')
          ->name('email')
@@ -191,7 +195,7 @@ HTML::FormFu::Constraint::DBIC::Unique - unique constraint for HTML::FormFu::Mod
 
     or in a config file:
     ---
-    elements: 
+    elements:
       - type: text
         name: email
         constraints:
@@ -200,7 +204,7 @@ HTML::FormFu::Constraint::DBIC::Unique - unique constraint for HTML::FormFu::Mod
             model: DBIC::User
       - type: text
         name: user
-        constraints: 
+        constraints:
           - Required
           - type: DBIC::Unique
             model: DBIC::User
@@ -224,7 +228,7 @@ Arguments: $string # a DBIC resultset name like 'User'
 =head2 self_stash_key
 
 reference to a key in the form stash. if this key exists, the constraint
-will check if the id matches the one of this element, so that you can 
+will check if the id matches the one of this element, so that you can
 use your own name.
 
 =head2 id_field
@@ -256,13 +260,13 @@ more than one column. For example, if a database key consists of
 'category' and 'value', use a config file such as this:
 
     ---
-    elements: 
+    elements:
       - type:  Text
         name:  category
         label: Category
         constraints:
           - Required
-    
+
       - type:  Text
         name:  value
         label: Value
@@ -276,14 +280,14 @@ more than one column. For example, if a database key consists of
 
 Name of a method which will be called on the resultset. The method is passed
 two argument; the value of the field, and the primary key value (usually `id`)
-of the record in the form stash (as defined by self_stash_key). An example 
+of the record in the form stash (as defined by self_stash_key). An example
 config might be:
 
     ---
-    elements: 
+    elements:
       - type: text
         name: user
-        constraints: 
+        constraints:
           - Required
           - type: DBIC::Unique
             model: DBIC::User

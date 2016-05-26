@@ -4,7 +4,7 @@ use warnings;
 
 use base 'DBIx::Class';
 
-__PACKAGE__->load_components(qw/ 
+__PACKAGE__->load_components(qw/
     InflateColumn::DateTime Core
 /);
 
@@ -82,12 +82,12 @@ sub method_checkbox_test {
 }
 
 sub inflate_column_list_comma {
-  sub { 
+  sub {
 	[split(/,/,  shift )];
   }
 }
 sub deflate_column_list_comma {
-  sub { 
+  sub {
 	join(',', @{(shift)} );
   }
 }

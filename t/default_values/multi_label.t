@@ -36,7 +36,7 @@ $master->create_related( 'user', {
     is( $multi->render_data->{label}, 'mr' );
 
     my $name = $multi->get_field('name')->render_data;
-    
+
     is( $name->{value}, 'billy bob' );
 }
 

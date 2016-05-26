@@ -34,7 +34,7 @@ $master->create_related( 'user', {
     my $fs = $form->get_element;
 
     my $name = $fs->get_field('name')->render_data;
-    
+
     is( $name->{value}, 'billy bob' );
     is( $name->{label}, 'mr' );
 }

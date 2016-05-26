@@ -34,35 +34,35 @@ sub fullname {
 
     if (@_) {
         my $fullname = shift;
-        
+
         my $match = qr/
             (?: ( \w+ ) \s+ )?
             ( .* )
             /x;
-        
+
         my ($title, $name) = $fullname =~ $match;
-        
+
         $self->set_column( 'title', $title );
         $self->set_column( 'name', $name );
-        
+
         return $fullname;
     }
-    
+
     my $title = $self->get_column('title');
     my $name  = $self->get_column('name');
-    
+
     return join ' ', grep {defined} $title, $name;
 }
 
 sub foo {
     my ($self) = @_;
-    
+
     my $row = $self->find_or_new_related( 'hasmanys', { key => 'foo' } );
-    
+
     if ( @_ > 1 ) {
         $row->update(@_);
     }
-    
+
     return $row;
 }
 

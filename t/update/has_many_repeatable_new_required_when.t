@@ -14,7 +14,7 @@ $form->load_config_file('t/update/has_many_repeatable_new_required_when.yml');
 # a form is created with 'empty_rows' => 2
 # but only 1 new row is filled in
 
-# test using a Required constraint 
+# test using a Required constraint
 # with 'when' pointing to the PK field
 
 my $schema = new_schema();

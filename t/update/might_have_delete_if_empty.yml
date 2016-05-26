@@ -4,10 +4,10 @@ auto_fieldset: 1
 elements:
   - type: Hidden
     name: id
-  
+
   - type: Text
     name: text_col
-  
+
   - type: Block
     nested_name: note
     elements:
@@ -15,6 +15,6 @@ elements:
         name: note
         model_config:
           delete_if_empty: 1
-  
+
   - type: Submit
     name: submit

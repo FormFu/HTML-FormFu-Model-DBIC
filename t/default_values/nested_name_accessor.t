@@ -34,7 +34,7 @@ $row->create_related( 'hasmanys', { key => 'foo', value => 'b' } );
     $form->model->default_values($row);
 
     is( $form->get_field('name')->default, 'mr. foo' );
-    
+
     is ( $form->get_field('value')->default, 'b' );
 }
 

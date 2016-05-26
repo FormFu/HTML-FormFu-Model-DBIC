@@ -4,12 +4,12 @@ auto_fieldset: 1
 elements:
   - type: Hidden
     name: id
-  
+
   - type: Text
     name: name
-  
+
   - type: Checkboxgroup
     name: bands
-  
+
   - type: Submit
     name: submit

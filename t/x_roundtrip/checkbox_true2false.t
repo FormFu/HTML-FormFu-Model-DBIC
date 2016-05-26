@@ -28,21 +28,21 @@ $rs->create( {
 
 {
     my $form = HTML::FormFu->new;
-    
+
     $form->load_config_file( $config_file );
-    
+
     my $row = $rs->find(2);
 
     $form->model->default_values($row);
-    
+
     # check field value
 
     my $checkbox = $form->get_field('checkbox_col');
-    
+
     is( $checkbox->default, '1' );
-    
+
     my $expected_xhtml = q{<input name="checkbox_col" type="checkbox" value="1" checked="checked" />};
-    
+
     like( "$checkbox", qr/\Q$expected_xhtml\E/ );
 }
 
@@ -51,19 +51,19 @@ $rs->create( {
 
 {
     my $form = HTML::FormFu->new;
-    
+
     $form->load_config_file( $config_file );
-    
+
     $form->process({
         id => 2,
     });
-    
+
     my $row = $rs->find(2);
 
     $form->model->update($row);
-    
+
     # check database
-    
+
     is( $row->checkbox_col, '0' );
 }
 

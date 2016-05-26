@@ -1,4 +1,8 @@
 package HTML::FormFu::Model::DBIC;
+
+use strict;
+# VERSION
+
 use strict;
 use warnings;
 use base 'HTML::FormFu::Model';
@@ -351,7 +355,7 @@ sub create {
     my $schema = $form->stash->{schema}
         or croak 'schema required on form stash, if no row object provided';
 
-    my $resultset 
+    my $resultset
         = $attrs->{resultset}
         || $base->model_config->{resultset}
         || $form->model_config->{resultset}
@@ -590,19 +594,19 @@ sub _save_relationships {
 
 sub _save_combobox {
     my ( $self, $base, $dbic, $form, $rs, $combo, $rel, $attrs ) = @_;
-    
+
     my $select = $combo->get_field({ type => 'Select' });
     my $text   = $combo->get_field({ type => 'Text' });
-    
+
     my $select_value = $form->param( $select->nested_name );
     my $text_value   = $form->param( $text->nested_name );
-    
+
     my $target_rs = $dbic->result_source->related_source( $rel )->resultset;
     my $target;
-    
+
     if ( defined $select_value && length $select_value ) {
         my $pk_name = $combo->model_config->{select_column};
-        
+
         $target = $target_rs->find(
             {
                 $pk_name => $select_value,
@@ -611,14 +615,14 @@ sub _save_combobox {
     }
     else {
         my $column_name = $combo->model_config->{text_column};
-        
+
         $target = $target_rs->create(
             {
                 $column_name => $text_value,
             },
         );
     }
-    
+
     $dbic->set_from_related( $rel, $target );
     $dbic->update;
 }
@@ -817,7 +821,7 @@ sub _fix_value {
             ) or $field->model_config->{null_if_empty} )
 
             # comparing to '' does not work for inflated objects
-            && !ref $value 
+            && !ref $value
             && $value eq ''
             )
         {
@@ -851,12 +855,12 @@ sub _save_columns {
 
         my $accessor = $config->{accessor} || $name;
         next if not defined $accessor;
-        
-        my $value = ( $dbic->result_source->has_column($accessor) 
+
+        my $value = ( $dbic->result_source->has_column($accessor)
 				  and exists $dbic->result_source->column_info($accessor)->{is_array} )
 			? $form->param_array( $field->nested_name )
         	: $form->param_value( $field->nested_name ) ;
-        
+
         next
             if $config->{ignore_if_empty}
                 && ( !defined $value || $value eq "" );
@@ -1043,7 +1047,7 @@ sub _save_repeatable_many_to_many {
                 my $is_new;
 
                 my $config = $block->model_config;
-                my $new_rows_max 
+                my $new_rows_max
                     = $config->{new_rows_max}
                     || $config->{empty_rows}
                     || 0;
@@ -1144,26 +1148,26 @@ Example of typical use in a Catalyst controller:
 
     sub edit : Chained {
         my ( $self, $c ) = @_;
-        
+
         my $form = $c->stash->{form};
         my $book = $c->stash->{book};
-        
+
         if ( $form->submitted_and_valid ) {
-            
+
             # update dbic row with submitted values from form
-            
+
             $form->model->update( $book );
-            
+
             $c->response->redirect( $c->uri_for('view', $book->id) );
             return;
         }
         elsif ( !$form->submitted ) {
-            
+
             # use dbic row to set form's default values
-            
+
             $form->model->default_values( $book );
         }
-        
+
         return;
     }
 
@@ -1233,7 +1237,7 @@ An example of setting the ResultSet name on a Form:
     ---
     model_config:
       resultset: FooTable
-    
+
     elements:
       # [snip]
 
@@ -1276,20 +1280,20 @@ For the following DBIx::Class schema:
 
     package MySchema::Book;
     use base 'DBIx::Class';
-    
+
     __PACKAGE__->load_components(qw/ Core /);
-    
+
     __PACKAGE__->table("book");
-    
+
     __PACKAGE__->add_columns(
         id     => { data_type => "INTEGER" },
         title  => { data_type => "TEXT" },
         author => { data_type => "TEXT" },
         blurb  => { data_type => "TEXT" },
     );
-    
+
     __PACKAGE__->set_primary_key("id");
-    
+
     1;
 
 A suitable form for this might be:
@@ -1297,18 +1301,18 @@ A suitable form for this might be:
     elements:
       - type: Text
         name: title
-      
+
       - type: Text
         name: author
-      
+
       - type: Textarea
         name: blurb
 
 =head2 might_have and has_one relationships
 
-Set field values from a related row with a C<might_have> or C<has_one> 
-relationship by placing the fields within a 
-L<Block|HTML::FormFu::Element::Block> (or any element that inherits from 
+Set field values from a related row with a C<might_have> or C<has_one>
+relationship by placing the fields within a
+L<Block|HTML::FormFu::Element::Block> (or any element that inherits from
 Block, such as L<Fieldset|HTML::FormFu::Element::Fieldset>) with its
 L<HTML::FormFu/nested_name> set to the relationship name.
 
@@ -1316,40 +1320,40 @@ For the following DBIx::Class schemas:
 
     package MySchema::Book;
     use base 'DBIx::Class';
-    
+
     __PACKAGE__->load_components(qw/ Core /);
-    
+
     __PACKAGE__->table("book");
-    
+
     __PACKAGE__->add_columns(
         id    => { data_type => "INTEGER" },
         title => { data_type => "TEXT" },
     );
-    
+
     __PACKAGE__->set_primary_key("id");
-    
+
     __PACKAGE__->might_have( review => 'MySchema::Review', 'book' );
-    
+
     1;
 
 
     package MySchema::Review;
     use base 'DBIx::Class';
-    
+
     __PACKAGE__->load_components(qw/ Core /);
-    
+
     __PACKAGE__->table("review");
-    
+
     __PACKAGE__->add_columns(
         id          => { data_type => "INTEGER" },
         book        => { data_type => "INTEGER", is_nullable => 1 },
         review_text => { data_type => "TEXT" },
     );
-    
+
     __PACKAGE__->set_primary_key("book");
-    
+
     __PACKAGE__->belongs_to( book => 'MySchema::Book' );
-    
+
     1;
 
 A suitable form for this would be:
@@ -1357,7 +1361,7 @@ A suitable form for this would be:
     elements:
       - type: Text
         name: title
-      
+
       - type: Block
         nested_name: review
         elements:
@@ -1369,20 +1373,20 @@ to have a field for the related table's primary key, as DBIx::Class will
 handle retrieving the correct row automatically.
 
 You can also set a C<has_one> or C<might_have> relationship using a multi value
-field like L<Select|HTML::FormFu::Element::Select>. 
+field like L<Select|HTML::FormFu::Element::Select>.
 
     elements:
       - type: Text
         name: title
-      
+
       - type: Select
         nested: review
         model_config:
           resultset: Review
 
 This will load all reviews into the select field. If you select a review from
-that list, a current relationship to a review is removed and the new one is 
-added. This requires that the primary key of the C<Review> table and the 
+that list, a current relationship to a review is removed and the new one is
+added. This requires that the primary key of the C<Review> table and the
 foreign key do not match.
 
 =head2 has_many and many_to_many relationships
@@ -1418,39 +1422,39 @@ For the following DBIx::Class schemas:
 
     package MySchema::Book;
     use base 'DBIx::Class';
-    
+
     __PACKAGE__->load_components(qw/ Core /);
-    
+
     __PACKAGE__->table("book");
-    
+
     __PACKAGE__->add_columns(
         id    => { data_type => "INTEGER" },
         title => { data_type => "TEXT" },
     );
-    
+
     __PACKAGE__->set_primary_key("id");
-    
+
     __PACKAGE__->has_many( review => 'MySchema::Review', 'book' );
-    
+
     1;
 
 
     package MySchema::Review;
     use base 'DBIx::Class';
-    
+
     __PACKAGE__->load_components(qw/ Core /);
-    
+
     __PACKAGE__->table("review");
-    
+
     __PACKAGE__->add_columns(
         book        => { data_type => "INTEGER" },
         review_text => { data_type => "TEXT" },
     );
-    
+
     __PACKAGE__->set_primary_key("book");
-    
+
     __PACKAGE__->belongs_to( book => 'MySchema::Book' );
-    
+
     1;
 
 A suitable form for this might be:
@@ -1458,10 +1462,10 @@ A suitable form for this might be:
     elements:
       - type: Text
         name: title
-      
+
       - type: Hidden
         name: review_count
-      
+
       - type: Repeatable
         nested_name: review
         counter_name: review_count
@@ -1470,7 +1474,7 @@ A suitable form for this might be:
         elements:
           - type: Hidden
             name: book
-          
+
           - type: Textarea
             name: review_text
 
@@ -1499,12 +1503,12 @@ column.
 =head2 many_to_many selection
 
 To select / deselect rows from a C<many_to_many> relationship, you must use
-a multi-valued element, such as a 
+a multi-valued element, such as a
 L<Checkboxgroup|HTML::FormFu::Element::Checkboxgroup> or a
-L<Select|HTML::FormFu::Element::Select> with 
+L<Select|HTML::FormFu::Element::Select> with
 L<multiple|HTML::FormFu::Element::Select/multiple> set.
 
-The field's L<name|HTML::FormFu::Element::_Field/name> must be set to the 
+The field's L<name|HTML::FormFu::Element::_Field/name> must be set to the
 name of the C<many_to_many> relationship.
 
 =head3 default_column
@@ -1521,7 +1525,7 @@ primary key, set C<< $field->model_config->{default_column} >>.
 
 =head3 link_values
 
-If you want to set columns on the link table you can do so if you add a 
+If you want to set columns on the link table you can do so if you add a
 C<link_values> attribute to C<model_config>:
 
     ---
@@ -1603,7 +1607,7 @@ If the submitted value is blank, no attempt will be made to save it to the datab
 
 =item null_if_empty
 
-If the submitted value is blank, save it as NULL to the database. Normally an empty string is saved as NULL when its corresponding field is numeric, and as an empty string when its corresponding field is a text field. This option is useful for changing the default behavior for text fields. 
+If the submitted value is blank, save it as NULL to the database. Normally an empty string is saved as NULL when its corresponding field is numeric, and as an empty string when its corresponding field is a text field. This option is useful for changing the default behavior for text fields.
 
 =item delete_if_empty
 
@@ -1615,39 +1619,39 @@ For the following DBIx::Class schemas:
 
     package MySchema::Book;
     use base 'DBIx::Class';
-    
+
     __PACKAGE__->load_components(qw/ Core /);
-    
+
     __PACKAGE__->table("book");
-    
+
     __PACKAGE__->add_columns(
         id    => { data_type => "INTEGER" },
         title => { data_type => "TEXT" },
     );
-    
+
     __PACKAGE__->set_primary_key("id");
-    
+
     __PACKAGE__->might_have( review => 'MySchema::Review', 'book' );
-    
+
     1;
 
 
     package MySchema::Review;
     use base 'DBIx::Class';
-    
+
     __PACKAGE__->load_components(qw/ Core /);
-    
+
     __PACKAGE__->table("review");
-    
+
     __PACKAGE__->add_columns(
         book        => { data_type => "INTEGER" },
         review_text => { data_type => "TEXT" },
     );
-    
+
     __PACKAGE__->set_primary_key("book");
-    
+
     __PACKAGE__->belongs_to( book => 'MySchema::Book' );
-    
+
     1;
 
 A suitable form for this would be:
@@ -1655,7 +1659,7 @@ A suitable form for this would be:
     elements:
       - type: Text
         name: title
-      
+
       - type: Block
         nested_name: review
         elements:
@@ -1688,20 +1692,20 @@ An example of use might be:
     elements:
       - type: Text
         name: title
-      
+
       - type: Hidden
         name: review_count
-      
+
       - type: Repeatable
         nested_name: review
         counter_name: review_count
         elements:
           - type: Hidden
             name: book
-          
+
           - type: Textarea
             name: review_text
-          
+
           - type: Checkbox
             name: delete_review
             label: 'Delete Review?'
@@ -1821,13 +1825,13 @@ will be populated with the enum values.
 
 =head2 Add extra values not in the form
 
-To update values to the database which weren't submitted to the form, 
+To update values to the database which weren't submitted to the form,
 you can first add them to the form with L<add_valid|HTML::FormFu/add_valid>.
 
     my $passwd = generate_passwd();
-    
+
     $form->add_valid( passwd => $passwd );
-    
+
     $form->model->update( $row );
 
 C<add_valid> works for fieldnames that don't exist in the form.
@@ -1838,7 +1842,7 @@ You can make a field read only. The value of such fields cannot be changed by
 the user even if they submit a value for it.
 
   $field->model_config->{read_only} = 1;
-  
+
   - Name: field
     model_config:
       read_only: 1
@@ -1847,12 +1851,12 @@ See L<HTML::FormFu::Element::Label>.
 
 =head1 CAVEATS
 
-To ensure your column's inflators and deflators are called, we have to 
-get / set values using their named methods, and not with C<get_column> / 
+To ensure your column's inflators and deflators are called, we have to
+get / set values using their named methods, and not with C<get_column> /
 C<set_column>.
 
-Because of this, beware of having column names which clash with DBIx::Class 
-built-in method-names, such as C<delete>. - It will have obviously 
+Because of this, beware of having column names which clash with DBIx::Class
+built-in method-names, such as C<delete>. - It will have obviously
 undesirable results!
 
 =head1 REMOVED METHODS
@@ -1885,8 +1889,8 @@ L<http://lists.scsys.co.uk/pipermail/html-formfu/>
 
 =head1 BUGS
 
-Please submit bugs / feature requests to 
-L<http://code.google.com/p/html-formfu/issues/list> (preferred) or 
+Please submit bugs / feature requests to
+L<http://code.google.com/p/html-formfu/issues/list> (preferred) or
 L<http://rt.perl.org>.
 
 =head1 GITHUB REPOSITORY
@@ -1919,7 +1923,7 @@ Mario Minati
 
 Copyright (C) 2007 by Carl Franks
 
-Based on the original source code of L<DBIx::Class::HTMLWidget>, copyright 
+Based on the original source code of L<DBIx::Class::HTMLWidget>, copyright
 Thomas Klausner.
 
 This library is free software; you can redistribute it and/or modify

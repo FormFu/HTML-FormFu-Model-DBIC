@@ -43,9 +43,9 @@ my $rs = $schema->resultset('Master');
         "note.id"   => 2,
         "note.note" => 'abc',
     } );
-    
+
     my $row = $schema->resultset('Master')->find(3);
-    
+
     $form->model->update($row);
 }
 

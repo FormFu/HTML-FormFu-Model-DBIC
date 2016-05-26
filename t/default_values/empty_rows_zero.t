@@ -36,7 +36,7 @@ $master->create_related( 'user', {
 
     is( $form->get_field('id')->default,    '4' );
     is( $form->get_field('count')->default, '0' );
-    
+
     my $block = $form->get_all_element( { nested_name => 'addresses' } );
 
     my @reps = @{ $block->get_elements };

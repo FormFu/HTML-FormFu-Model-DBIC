@@ -43,11 +43,11 @@ my $rs = $schema->resultset('Master');
         "user.id"   => 2,
         "user.name" => 'bar',
     } );
-    
+
     ok( $form->submitted_and_valid );
 
     my $row = $schema->resultset('Master')->find(3);
-    
+
     $form->model->update($row);
 }
 

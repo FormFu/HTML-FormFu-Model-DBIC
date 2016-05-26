@@ -20,9 +20,9 @@ $form->process;
 
 {
     my $option = $form->get_field('enum_col')->options;
-    
+
     is( scalar( @$option ), 3 );
-    
+
     is( $option->[0]->{label}, 'a' );
     is( $option->[1]->{label}, 'b' );
     is( $option->[2]->{label}, 'c' );
@@ -34,7 +34,7 @@ $form->process;
     $form->process({
         enum_col => 'a',
     });
-    
+
     ok( $form->valid('enum_col') );
 }
 
@@ -42,6 +42,6 @@ $form->process;
     $form->process({
         enum_col => 'd',
     });
-    
+
     ok( ! $form->valid('enum_col') );
 }

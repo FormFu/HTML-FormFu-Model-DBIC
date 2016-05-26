@@ -19,7 +19,7 @@ my $rs = $schema->resultset('Master');
 
 {
     my $type_rs  = $schema->resultset('Type');
-    
+
     # types
     $type_rs->delete;
     $type_rs->create( { type => 'type 1' } );

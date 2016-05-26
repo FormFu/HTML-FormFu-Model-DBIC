@@ -28,9 +28,9 @@ $form->process;
 
 {
     my $option = $form->get_field('type')->options;
-    
+
     ok( @$option == 2 );
-    
+
     is( $option->[0]->{label}, 'Foo' );
     is( $option->[1]->{label}, 'Bar' );
 }

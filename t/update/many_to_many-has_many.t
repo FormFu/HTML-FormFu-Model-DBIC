@@ -102,12 +102,12 @@ my $master = $schema->resultset('Master')->create( { id => 1 } );
         # address 2
         is( $address[0]->id,      2 );
         is( $address[0]->address, 'add 2 edit' );
-        
+
         # address 3
         is( $address[1]->id,      3 );
         is( $address[1]->address, 'add 3 edit' );
     }
-    
+
     # user 6
     {
         is( $user[1]->id,   6 );

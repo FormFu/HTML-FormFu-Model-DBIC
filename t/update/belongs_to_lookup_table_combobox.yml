@@ -4,10 +4,10 @@ auto_fieldset: 1
 elements:
   - type: Hidden
     name: id
-  
+
   - type: Text
     name: text_col
-  
+
   - type: ComboBox
     name: type
     # set this, so options_from_model() populates the menu,

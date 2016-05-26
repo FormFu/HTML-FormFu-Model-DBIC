@@ -37,6 +37,6 @@ $form->process;
 
 {
     my $option = $form->get_field('type')->options;
-    
+
     is( scalar @$option, 0 );
 }
