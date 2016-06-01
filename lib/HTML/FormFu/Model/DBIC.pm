@@ -1,11 +1,10 @@
 package HTML::FormFu::Model::DBIC;
 
 use strict;
-# VERSION
-
-use strict;
 use warnings;
 use base 'HTML::FormFu::Model';
+
+# VERSION
 
 use HTML::FormFu::Util qw( _merge_hashes );
 use List::MoreUtils qw( none notall );
