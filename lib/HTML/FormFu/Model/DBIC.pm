@@ -897,7 +897,8 @@ sub _save_columns {
             $dbic->can($accessor)
 
 # and $accessor is not a has_one or might_have rel where the foreign key is on the foreign table
-            and !$dbic->result_source->relationship_info($accessor) )
+            and !$dbic->result_source->relationship_info($accessor)
+            and !$dbic->can( 'add_to_' . $accessor ) )
         {
             $dbic->$accessor($value);
         }
