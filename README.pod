@@ -6,7 +6,7 @@ HTML::FormFu::Model::DBIC - Integrate HTML::FormFu with DBIx::Class
 
 =head1 VERSION
 
-version 2.01
+version 2.02
 
 =head1 SYNOPSIS
 
