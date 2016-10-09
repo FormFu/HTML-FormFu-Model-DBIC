@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+2.02 2016-06-24
+
     - documentation fixes
 
     - build and packaging tweaks, including travis CI config, additional
