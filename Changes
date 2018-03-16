@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+    - New 'expand_stash_dots' config option
+
 2.02 2016-06-24
 
     - documentation fixes
