@@ -22,9 +22,9 @@ if ($@) {
 
 plan tests => 7;
 
-use Crypt::CBC ();
 use Storable qw/ thaw /;
-use YAML::Syck qw/ LoadFile /;
+Crypt::CBC->import();
+YAML::Syck->import('LoadFile' );
 
 my $yaml_file = 't/multiform/multiform.yml';
 
