@@ -6,7 +6,7 @@ HTML::FormFu::Model::DBIC - Integrate HTML::FormFu with DBIx::Class
 
 =head1 VERSION
 
-version 2.02
+version 2.03
 
 =head1 SYNOPSIS
 
@@ -676,6 +676,37 @@ Is comparable to:
             }
         }
     })
+
+If the value in the stash is nested in a data-structure, you can access it by
+setting C<expand_stash_dots>. As you can see in the example below, it
+automatically handles calling methods on objects, accessing hash-keys on
+hash-references, and accessing array-slots on array references.
+
+    element:
+      - type: Select
+        name: foo
+        model_config:
+          resultset: TableClass
+          condition_from_stash:
+            key: foo.bar.0
+          expand_stash_dots: 1
+
+Is comparable to:
+
+    $form->element({
+        type => 'Select',
+        name => 'foo',
+        model_config => {
+            resultset => 'TableClass',
+            condition => {
+                key => $form->stash->{foo}->bar->[0];
+            }
+        }
+    })
+    # Where stash returns a hashref.
+    # The 'foo' hash-key returns an object.
+    # The object-method 'bar' returns an arrayref.
+    # The first array slot returns the value used in the query.
 
 You can set C<attributes>, which will be passed as the 2nd argument to
 L<DBIx::Class::ResultSet/search>.
