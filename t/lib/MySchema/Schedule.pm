@@ -9,7 +9,7 @@ __PACKAGE__->load_components(qw/ InflateColumn::DateTime Core /);
 __PACKAGE__->table("schedule");
 
 __PACKAGE__->add_columns(
-    id     => { data_type => "INTEGER", is_nullable => 0 },
+    id     => { data_type => "INTEGER", is_nullable => 0, is_auto_increment => 1 },
     master => { data_type => "INTEGER", is_nullable => 0 },
     date   => { data_type => "DATETIME", is_nullable => 0 },
     note   => { data_type => "TEXT", is_nullable => 0 },
