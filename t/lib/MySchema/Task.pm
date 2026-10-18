@@ -9,7 +9,7 @@ __PACKAGE__->load_components(qw/ Core /);
 __PACKAGE__->table("task");
 
 __PACKAGE__->add_columns(
-    id       => { data_type => "INTEGER", is_nullable => 0 },
+    id       => { data_type => "INTEGER", is_nullable => 0, is_auto_increment => 1 },
     schedule => { data_type => "INTEGER", is_nullable => 0 },
     deadline => { data_type => "DATETIME", is_nullable => 1 },
     detail   => { data_type => "TEXT", is_nullable => 0 },

@@ -14,6 +14,7 @@ __PACKAGE__->add_columns(
     id             => {
         data_type => "INTEGER",
         is_nullable => 0,
+		is_auto_increment => 1,
     },
     text_col       => { data_type => "TEXT", is_nullable => 1 },
     password_col   => { data_type => "TEXT", is_nullable => 1 },

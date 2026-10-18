@@ -9,7 +9,7 @@ __PACKAGE__->load_components(qw/ Core /);
 __PACKAGE__->table("band");
 
 __PACKAGE__->add_columns(
-    id      => { data_type => "INTEGER", is_nullable => 0 },
+    id      => { data_type => "INTEGER", is_nullable => 0, is_auto_increment => 1 },
     manager => { data_type => "INTEGER", is_nullable => 1 },
     band    => { data_type => "TEXT", is_nullable => 0 },
 );
