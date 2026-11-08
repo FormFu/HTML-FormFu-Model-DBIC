@@ -46,7 +46,7 @@ my $master = $schema->resultset('Master')->create({ id => 1 });
     $form->process( {
             'id'                  => 2,
             'name'                => 'new nick',
-            'count'               => 4,
+            'count'               => 3,
             'addresses_1.id'      => 2,
             'addresses_1.address' => 'new home',
             'addresses_2.id'      => 3,
